@@ -1,0 +1,85 @@
+/* Custom App Styles */
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    overscroll-behavior: none;
+  }
+}
+
+/* Custom sleek scrollbar for tables & modals */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Smooth modal transitions */
+.modal-backdrop {
+  background-color: rgba(11, 28, 48, 0.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Donut chart stroke animations */
+.donut-segment {
+  transition: stroke-dasharray 0.7s cubic-bezier(0.4, 0, 0.2, 1), stroke-dashoffset 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Day card hover & selection */
+.calendar-day-card {
+  transition: all 0.15s ease-in-out;
+}
+.calendar-day-card:hover {
+  transform: translateY(-1px);
+}
+.calendar-day-selected {
+  outline: 2px solid #00685f;
+  background-color: #f0fdf9 !important;
+}
+
+/* Toast notifications */
+#toast-container {
+  pointer-events: none;
+}
+.toast-msg {
+  pointer-events: auto;
+  animation: toastSlideIn 0.25s ease-out forwards;
+}
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Tab contents transition */
+.tab-content {
+  animation: fadeIn 0.2s ease-in-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Pill badge active states */
+.active-pill {
+  background-color: #00685f !important;
+  color: #ffffff !important;
+}

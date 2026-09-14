@@ -1,0 +1,43 @@
+import os
+from dotenv import load_dotenv
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+# Load environment variables from .env file if present
+load_dotenv(os.path.join(BASE_DIR, '.env'))
+
+def get_database_uri():
+    raw_uri = os.environ.get('DATABASE_URL', '').strip()
+    if not raw_uri:
+        # Default fallback to local SQLite database
+        return f"sqlite:///{os.path.join(BASE_DIR, 'spendwise.db')}"
+    
+    # SQLAlchemy 1.4+ and 2.0+ require 'postgresql://' instead of 'postgres://'
+    if raw_uri.startswith('postgres://'):
+        raw_uri = raw_uri.replace('postgres://', 'postgresql://', 1)
+    
+    return raw_uri
+
+class Config:
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'spendwise_super_secret_key_2026')
+    SQLALCHEMY_DATABASE_URI = get_database_uri()
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Engine options for Supabase cloud PostgreSQL connection stability
+    # Prevents idle connection dropouts when using Supabase pooler/PgBouncer
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+    }
+
+    # Session cookie configuration
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+
+    # Supabase Client configuration
+    SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip() or None
+    SUPABASE_KEY = (
+        os.environ.get('SUPABASE_SERVICE_ROLE_KEY', '').strip()
+        or os.environ.get('SUPABASE_KEY', '').strip()
+        or os.environ.get('SUPABASE_ANON_KEY', '').strip()
+        or None
+    )

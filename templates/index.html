@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpendWise - Financial Center & Expense Tracker</title>
+  
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#00685f",
+            "primary-container": "#008378",
+            "primary-fixed": "#89f5e7",
+            "primary-fixed-dim": "#6bd8cb",
+            "on-primary": "#ffffff",
+            "on-primary-container": "#f4fffc",
+            "on-primary-fixed": "#00201d",
+            "secondary": "#565e74",
+            "secondary-container": "#dae2fd",
+            "secondary-fixed": "#dae2fd",
+            "secondary-fixed-dim": "#bec6e0",
+            "on-secondary": "#ffffff",
+            "on-secondary-fixed": "#131b2e",
+            "tertiary": "#17684e",
+            "tertiary-container": "#378166",
+            "tertiary-fixed": "#a6f2d1",
+            "tertiary-fixed-dim": "#8bd6b6",
+            "on-tertiary": "#ffffff",
+            "on-tertiary-fixed": "#002116",
+            "background": "#f8f9ff",
+            "surface": "#f8f9ff",
+            "surface-variant": "#d3e4fe",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#eff4ff",
+            "surface-container": "#e5eeff",
+            "surface-container-high": "#dce9ff",
+            "surface-container-highest": "#d3e4fe",
+            "on-surface": "#0b1c30",
+            "on-surface-variant": "#3d4947",
+            "error": "#ba1a1a",
+            "error-container": "#ffdad6",
+            "on-error": "#ffffff",
+            "on-error-container": "#93000a",
+            "outline": "#6d7a77",
+            "outline-variant": "#bcc9c6"
+          },
+          fontFamily: {
+            "display-hero": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-lg": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-md": ["Plus Jakarta Sans", "sans-serif"],
+            "headline-sm": ["Plus Jakarta Sans", "sans-serif"],
+            "title-md": ["Inter", "sans-serif"],
+            "title-sm": ["Inter", "sans-serif"],
+            "body-lg": ["Inter", "sans-serif"],
+            "body-md": ["Inter", "sans-serif"],
+            "body-sm": ["Inter", "sans-serif"],
+            "label-md": ["Inter", "sans-serif"],
+            "label-sm": ["Inter", "sans-serif"]
+          },
+          spacing: {
+            "space-2xs": "0.125rem",
+            "space-xs": "0.25rem",
+            "space-sm": "0.5rem",
+            "space-md": "0.75rem",
+            "space-base": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "space-2xl": "3rem"
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Custom App Styles -->
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-background font-body-md text-body-md text-on-surface antialiased select-none">
+
+  <!-- ================================================================= -->
+  <!-- SIDEBAR NAVIGATION                                                -->
+  <!-- ================================================================= -->
+  <aside class="fixed left-0 top-0 h-screen w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between py-space-base">
+    <div class="flex flex-col px-space-base">
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-space-sm pb-space-lg px-space-xs cursor-pointer" onclick="App.switchTab('dashboard')">
+        <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm">
+          <span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
+        </div>
+        <span class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight">SpendWise</span>
+      </div>
+
+      <!-- Main Menu Section -->
+      <div class="pb-space-xs">
+        <span class="px-space-sm font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold">Main Menu</span>
+      </div>
+      <nav class="flex flex-col gap-space-2xs">
+        <a class="flex items-center gap-space-sm px-space-sm py-space-sm rounded-lg font-title-sm text-title-sm bg-primary-container text-on-primary-container font-semibold shadow-sm transition-all" data-path="dashboard" href="#">
+          <span class="material-symbols-outlined text-[20px]">grid_view</span>
+          <span>Dashboard</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-sm py-space-sm rounded-lg font-title-sm text-title-sm text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="transactions" href="#">
+          <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+          <span>Transactions</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-sm py-space-sm rounded-lg font-title-sm text-title-sm text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="analytics" href="#">
+          <span class="material-symbols-outlined text-[20px]">monitoring</span>
+          <span>Analytics</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-sm py-space-sm rounded-lg font-title-sm text-title-sm text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="calendar" href="#">
+          <span class="material-symbols-outlined text-[20px]">calendar_month</span>
+          <span>Calendar</span>
+        </a>
+      </nav>
+
+      <!-- Preferences Section -->
+      <div class="pt-space-md pb-space-xs">
+        <span class="px-space-sm font-label-sm text-label-sm text-secondary uppercase tracking-wider font-semibold">Preferences</span>
+      </div>
+      <nav class="flex flex-col gap-space-2xs">
+        <a class="flex items-center gap-space-sm px-space-sm py-space-sm rounded-lg font-title-sm text-title-sm text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="categories" href="#">
+          <span class="material-symbols-outlined text-[20px]">label</span>
+          <span>Categories</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-sm py-space-sm rounded-lg font-title-sm text-title-sm text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-all" data-path="settings" href="#">
+          <span class="material-symbols-outlined text-[20px]">settings</span>
+          <span>Profile &amp; Settings</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-sm py-space-sm rounded-lg font-title-sm text-title-sm text-on-surface-variant hover:bg-error-container hover:text-on-error-container transition-all" data-path="logout" href="#">
+          <span class="material-symbols-outlined text-[20px]">logout</span>
+          <span>Logout</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Active User Card -->
+    <div class="px-space-base pt-space-md">
+      <div class="flex items-center justify-between p-space-sm rounded-xl bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer" onclick="App.switchTab('settings')">
+        <div class="flex items-center gap-space-sm">
+          <div class="w-9 h-9 rounded-full bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold text-[14px]">
+            <span class="material-symbols-outlined text-[18px]">person</span>
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="user-name-display font-title-sm text-title-sm text-on-surface font-semibold leading-tight truncate">Karma</span>
+            <span class="font-label-sm text-label-sm text-secondary">Pro Tier</span>
+          </div>
+        </div>
+        <span class="material-symbols-outlined text-[18px] text-secondary">chevron_right</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================================================================= -->
+  <!-- MAIN APP CONTAINER                                                -->
+  <!-- ================================================================= -->
+  <div class="pl-64 flex flex-col min-h-screen">
+    
+    <!-- Top Fixed Header -->
+    <header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-xl">
+      <div class="flex items-center gap-space-sm">
+        <div class="flex items-center gap-space-xs text-on-surface-variant bg-surface-container-low px-space-sm py-space-xs rounded-lg">
+          <span class="material-symbols-outlined text-[18px]">calendar_today</span>
+          <span id="topbar-month-indicator" class="font-title-sm text-title-sm text-on-surface font-semibold">September 2026</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-md">
+        <button class="relative p-space-xs rounded-full text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors flex items-center justify-center" type="button" title="Notifications">
+          <span class="material-symbols-outlined text-[22px]">notifications</span>
+          <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-tertiary ring-2 ring-surface-container-lowest animate-pulse"></span>
+        </button>
+        <button class="btn-open-add-modal inline-flex items-center gap-space-xs px-space-base py-space-xs bg-primary hover:bg-primary-container text-on-primary rounded-lg font-title-sm text-title-sm shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] hover:shadow-md transition-all font-semibold" type="button">
+          <span class="material-symbols-outlined text-[18px]">add</span>
+          <span>Add Transaction</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Views Area -->
+    <main class="relative pt-16 w-full px-space-xl pb-space-2xl flex-1">
+      <div class="flex flex-col w-full">
+
+        <!-- Interactive View Switcher Bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-md my-space-lg">
+          <div class="inline-flex p-1 bg-surface-container-low rounded-xl gap-1">
+            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all bg-primary text-on-primary shadow-sm" data-tab-target="dashboard" type="button">
+              <span class="material-symbols-outlined text-[18px]">grid_view</span>
+              <span>Dashboard</span>
+            </button>
+            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface" data-tab-target="transactions" type="button">
+              <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+              <span>Transactions</span>
+            </button>
+            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface" data-tab-target="analytics" type="button">
+              <span class="material-symbols-outlined text-[18px]">monitoring</span>
+              <span>Analytics</span>
+            </button>
+            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface" data-tab-target="calendar" type="button">
+              <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+              <span>Calendar</span>
+            </button>
+          </div>
+          
+          <!-- Live Sync & Quick Filter Strip -->
+          <div class="flex items-center gap-space-sm self-start sm:self-auto">
+            <div class="flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
+              <span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+              <span>Flask SQLite Live · Synchronized</span>
+            </div>
+            <button class="px-space-sm py-1 rounded-lg bg-surface-container-low text-secondary hover:text-on-surface font-title-sm text-title-sm transition-colors flex items-center gap-1" onclick="App.switchTab('transactions')" type="button">
+              <span class="material-symbols-outlined text-[16px]">tune</span>
+              <span>Quick Filters</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TAB 1: DASHBOARD VIEW                                             -->
+        <!-- ================================================================= -->
+        <div class="tab-content flex flex-col gap-space-xl" id="tab-dashboard">
+          
+          <!-- Greeting Strip -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+            <div class="flex flex-col">
+              <div class="flex items-center gap-space-xs">
+                <h1 id="dashboard-greeting-name" class="font-headline-md text-headline-md text-on-surface font-bold">Good evening, Karma</h1>
+                <span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-semibold">Pro Tier</span>
+              </div>
+              <p class="font-body-md text-body-md text-secondary mt-1">Here is your verified spending and liquidity snapshot for the active cycle.</p>
+            </div>
+            <div class="flex items-center gap-space-sm">
+              <button class="inline-flex items-center gap-1 px-space-base py-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-title-sm text-title-sm transition-all" onclick="App.switchTab('transactions')" type="button">
+                <span class="material-symbols-outlined text-[18px]">history</span>
+                <span>View Ledger</span>
+              </button>
+              <button class="btn-open-add-modal inline-flex items-center gap-1 px-space-base py-space-xs rounded-lg bg-primary hover:bg-primary-container text-on-primary font-title-sm text-title-sm transition-all shadow-sm font-semibold" type="button">
+                <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                <span>New Record</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Top Metric Summary Bento Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-base">
+            <!-- Current Balance -->
+            <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between text-secondary">
+                <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Current Balance</span>
+                <span class="material-symbols-outlined text-[20px] text-primary">account_balance_wallet</span>
+              </div>
+              <div class="mt-space-md">
+                <span id="dash-current-balance" class="font-display-hero-mobile text-display-hero-mobile text-on-surface font-bold tracking-tight">₹0.00</span>
+                <div class="flex items-center gap-1.5 mt-2">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold">
+                    <span class="material-symbols-outlined text-[12px] mr-0.5">verified</span>All-time
+                  </span>
+                  <span class="font-body-sm text-body-sm text-secondary">net cashflow</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Income This Month -->
+            <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between text-secondary">
+                <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Income This Month</span>
+                <span class="material-symbols-outlined text-[20px] text-tertiary">arrow_downward</span>
+              </div>
+              <div class="mt-space-md">
+                <span id="dash-month-income" class="font-display-hero-mobile text-display-hero-mobile text-on-surface font-bold tracking-tight">₹0.00</span>
+                <div class="flex items-center gap-1.5 mt-2">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold">Inflow</span>
+                  <span class="font-body-sm text-body-sm text-secondary">verified credits</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Expenses This Month -->
+            <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between text-secondary">
+                <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Expenses This Month</span>
+                <span class="material-symbols-outlined text-[20px] text-error">arrow_upward</span>
+              </div>
+              <div class="mt-space-md">
+                <span id="dash-month-expense" class="font-display-hero-mobile text-display-hero-mobile text-on-surface font-bold tracking-tight">₹0.00</span>
+                <div class="flex items-center gap-1.5 mt-2">
+                  <span class="inline-flex items-center px-1.5 py-0.5 rounded-full bg-error-container text-on-error-container font-label-sm text-label-sm font-bold">Outflow</span>
+                  <span class="font-body-sm text-body-sm text-secondary">debited spending</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Remaining Budget -->
+            <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+              <div class="flex items-center justify-between text-secondary">
+                <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Remaining Cap</span>
+                <span class="material-symbols-outlined text-[20px] text-primary-container">pie_chart</span>
+              </div>
+              <div class="mt-space-md">
+                <span id="dash-remaining-budget" class="font-display-hero-mobile text-display-hero-mobile text-on-surface font-bold tracking-tight">₹35,000</span>
+                <div class="flex items-center gap-1.5 mt-2">
+                  <span id="dash-remaining-cap-sub" class="inline-flex items-center px-1.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-fixed font-label-sm text-label-sm font-bold">
+                    0% used
+                  </span>
+                  <span class="font-body-sm text-body-sm text-secondary">budget available</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spending by Category Donut Chart Section -->
+          <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between pb-space-md border-b border-surface-container-low">
+              <div>
+                <h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Spending by Category</h2>
+                <p class="font-body-sm text-body-sm text-secondary">Dynamic monthly outlay categorized across your spending envelopes</p>
+              </div>
+              <button class="text-primary hover:text-primary-container font-title-sm text-title-sm flex items-center gap-1 cursor-pointer transition-colors" onclick="App.switchTab('analytics')" type="button">
+                <span>Detailed Analytics</span>
+                <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </button>
+            </div>
+
+            <div class="flex flex-col xl:flex-row items-center justify-between gap-space-xl pt-space-lg">
+              <!-- SVG Donut Chart -->
+              <div class="relative w-56 h-56 flex-shrink-0 flex items-center justify-center">
+                <svg id="dash-donut-svg" class="w-full h-full -rotate-90" viewBox="0 0 42 42">
+                  <!-- Generated dynamically -->
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                  <span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Total Spent</span>
+                  <span id="dash-donut-total" class="font-headline-sm text-headline-sm font-bold text-on-surface">₹0</span>
+                  <span class="font-label-sm text-label-sm text-secondary">This Cycle</span>
+                </div>
+              </div>
+
+              <!-- Dynamic Legend Container -->
+              <div id="dash-donut-legend" class="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 gap-space-sm">
+                <!-- Dynamically generated or empty state -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Transactions Snapshot Table -->
+          <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col">
+            <div class="flex items-center justify-between pb-space-md">
+              <div>
+                <h2 class="font-headline-sm text-headline-sm text-on-surface font-bold">Recent Transactions</h2>
+                <p class="font-body-sm text-body-sm text-secondary">Last verified settlement records from your local database</p>
+              </div>
+              <button class="font-title-sm text-title-sm text-primary hover:text-primary-container font-semibold flex items-center gap-1" onclick="App.switchTab('transactions')" type="button">
+                <span>View all transactions</span>
+                <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </button>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left font-body-sm text-body-sm">
+                <thead>
+                  <tr class="bg-surface-container-low text-secondary font-semibold uppercase text-[11px] tracking-wider">
+                    <th class="py-space-sm px-space-md rounded-l-lg">Date</th>
+                    <th class="py-space-sm px-space-md">Merchant / Description</th>
+                    <th class="py-space-sm px-space-md">Category</th>
+                    <th class="py-space-sm px-space-md">Method</th>
+                    <th class="py-space-sm px-space-md text-right rounded-r-lg">Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-recent-txs-tbody" class="divide-y divide-surface-container-low">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TAB 2: TRANSACTIONS VIEW                                          -->
+        <!-- ================================================================= -->
+        <div class="tab-content flex flex-col gap-space-xl hidden" id="tab-transactions">
+          
+          <!-- Header Block -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+            <div>
+              <h1 class="font-headline-md text-headline-md text-on-surface font-bold">Transactions Ledger</h1>
+              <p class="font-body-md text-body-md text-secondary mt-1">Manage, filter, and reconcile all income, expenses, and transfer records.</p>
+            </div>
+            <div class="flex items-center gap-space-xs">
+              <button id="btn-export-csv" class="px-space-base py-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-title-sm text-title-sm flex items-center gap-1 transition-all" type="button">
+                <span class="material-symbols-outlined text-[18px]">download</span>
+                <span>Export CSV</span>
+              </button>
+              <button class="btn-open-add-modal px-space-base py-space-xs rounded-lg bg-primary hover:bg-primary-container text-on-primary font-title-sm text-title-sm flex items-center gap-1 transition-all shadow-sm font-semibold" type="button">
+                <span class="material-symbols-outlined text-[18px]">add</span>
+                <span>Add Transaction</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Micro Stat Row -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-space-base">
+            <div class="p-space-base bg-surface-container-lowest rounded-xl shadow-sm">
+              <span class="font-label-sm text-label-sm uppercase font-bold text-secondary">Net Cashflow</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="tx-micro-net-cash" class="font-headline-sm text-headline-sm font-bold text-tertiary">+₹0.00</span>
+                <span class="font-label-sm text-label-sm text-tertiary font-semibold">Net</span>
+              </div>
+            </div>
+            <div class="p-space-base bg-surface-container-lowest rounded-xl shadow-sm">
+              <span class="font-label-sm text-label-sm uppercase font-bold text-secondary">Period Inflow</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="tx-micro-inflow" class="font-headline-sm text-headline-sm font-bold text-on-surface">₹0.00</span>
+                <span class="font-label-sm text-label-sm text-secondary">credits</span>
+              </div>
+            </div>
+            <div class="p-space-base bg-surface-container-lowest rounded-xl shadow-sm">
+              <span class="font-label-sm text-label-sm uppercase font-bold text-secondary">Period Outflow</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="tx-micro-outflow" class="font-headline-sm text-headline-sm font-bold text-on-surface">₹0.00</span>
+                <span class="font-label-sm text-label-sm text-secondary">debits</span>
+              </div>
+            </div>
+            <div class="p-space-base bg-surface-container-lowest rounded-xl shadow-sm">
+              <span class="font-label-sm text-label-sm uppercase font-bold text-secondary">Filtered Count</span>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="tx-micro-count" class="font-headline-sm text-headline-sm font-bold text-on-surface">0 Records</span>
+                <span class="font-label-sm text-label-sm text-primary font-semibold">Active</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Search & Filter Controls -->
+          <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col gap-space-md">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-space-sm">
+              <!-- Search Input -->
+              <div class="md:col-span-5 relative flex items-center">
+                <span class="material-symbols-outlined absolute left-3 text-secondary text-[20px]">search</span>
+                <input id="ledger-search-input" class="w-full pl-10 pr-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-secondary focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/40 transition-all" placeholder="Search merchant, notes, or tags..." type="text">
+              </div>
+              <!-- Date Range Selection -->
+              <div class="md:col-span-3 flex items-center bg-surface-container-low rounded-lg px-space-sm py-2">
+                <span class="material-symbols-outlined text-secondary text-[18px] mr-2">date_range</span>
+                <select id="filter-date-range-select" class="w-full bg-transparent font-title-sm text-title-sm text-on-surface focus:outline-none cursor-pointer">
+                  <option value="this-month">This Month</option>
+                  <option value="last-month">Last Month (Past Month)</option>
+                  <option value="last-3-months">Last 3 Months (90 Days)</option>
+                  <option value="last-6-months">Last 6 Months (180 Days)</option>
+                  <option value="all-time">All Records (All Time)</option>
+                </select>
+              </div>
+              <!-- Category Dropdown -->
+              <div class="md:col-span-2 flex items-center bg-surface-container-low rounded-lg px-space-sm py-2">
+                <select id="filter-category-select" class="w-full bg-transparent font-title-sm text-title-sm text-on-surface focus:outline-none cursor-pointer">
+                  <option value="">All Categories</option>
+                  <option value="Food & Dining">Food &amp; Dining</option>
+                  <option value="Bills & Utilities">Bills &amp; Utilities</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Transport">Transport</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Health & Fitness">Health &amp; Fitness</option>
+                  <option value="Salary & Income">Salary &amp; Income</option>
+                  <option value="Freelance">Freelance</option>
+                  <option value="Investment">Investment</option>
+                  <option value="Others & Misc">Others &amp; Misc</option>
+                </select>
+              </div>
+              <!-- Payment Method -->
+              <div class="md:col-span-2 flex items-center bg-surface-container-low rounded-lg px-space-sm py-2">
+                <select id="filter-method-select" class="w-full bg-transparent font-title-sm text-title-sm text-on-surface focus:outline-none cursor-pointer">
+                  <option value="">All Methods</option>
+                  <option value="UPI">UPI</option>
+                  <option value="Credit Card">Credit Card</option>
+                  <option value="Debit Card">Debit Card</option>
+                  <option value="Net Banking">Net Banking</option>
+                  <option value="Cash">Cash</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Quick Chips Filter Row -->
+            <div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs">
+              <div class="flex flex-wrap items-center gap-space-xs">
+                <button class="px-space-sm py-1 rounded-full bg-primary text-on-primary font-label-sm text-label-sm font-semibold" data-type-filter="all" type="button">All Records</button>
+                <button class="px-space-sm py-1 rounded-full bg-surface-container-low text-secondary hover:text-on-surface font-label-sm text-label-sm font-semibold" data-type-filter="expense" type="button">Expenses Only</button>
+                <button class="px-space-sm py-1 rounded-full bg-surface-container-low text-secondary hover:text-on-surface font-label-sm text-label-sm font-semibold" data-type-filter="income" type="button">Income Only</button>
+                
+                <!-- Dynamic active chips -->
+                <div id="filter-active-chips" class="inline-flex items-center gap-space-xs"></div>
+              </div>
+              
+              <button id="btn-reset-filters" class="text-secondary hover:text-on-surface font-label-sm text-label-sm underline flex items-center gap-1" type="button">
+                <span class="material-symbols-outlined text-[14px]">restart_alt</span>
+                <span>Reset Filters</span>
+              </button>
+            </div>
+
+            <!-- Ledger Table -->
+            <div class="overflow-x-auto mt-space-sm">
+              <table class="w-full text-left font-body-sm text-body-sm">
+                <thead>
+                  <tr class="bg-surface-container-low text-secondary font-semibold uppercase text-[11px] tracking-wider">
+                    <th class="py-space-sm px-space-md rounded-l-lg">Date</th>
+                    <th class="py-space-sm px-space-md">Merchant / Description</th>
+                    <th class="py-space-sm px-space-md">Category</th>
+                    <th class="py-space-sm px-space-md">Payment Rail</th>
+                    <th class="py-space-sm px-space-md">Type</th>
+                    <th class="py-space-sm px-space-md text-right">Amount</th>
+                    <th class="py-space-sm px-space-md text-center rounded-r-lg">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="ledger-table-tbody" class="divide-y divide-surface-container-low">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination Strip -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pt-space-md mt-space-sm border-t border-surface-container-low">
+              <span id="ledger-pagination-info" class="font-body-sm text-body-sm text-secondary">Showing records</span>
+              <div id="ledger-pagination-buttons" class="inline-flex items-center gap-1"></div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TAB 3: ANALYTICS VIEW                                             -->
+        <!-- ================================================================= -->
+        <div class="tab-content flex flex-col gap-space-xl hidden" id="tab-analytics">
+          
+          <!-- Header Block with Timeframe Switches -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+            <div>
+              <h1 class="font-headline-md text-headline-md text-on-surface font-bold">Analytics &amp; Category Breakdown</h1>
+              <p class="font-body-md text-body-md text-secondary mt-1">Granular distribution of expenditure envelopes and liquidity dynamics.</p>
+            </div>
+            <!-- Timeframe Pills -->
+            <div class="inline-flex p-1 bg-surface-container-low rounded-xl gap-1">
+              <button class="px-space-sm py-1 rounded-lg font-title-sm text-title-sm bg-primary text-on-primary transition-all" data-preset="this-month" onclick="FilterManager.applyPreset('this-month')" type="button">This Month</button>
+              <button class="px-space-sm py-1 rounded-lg font-title-sm text-title-sm text-secondary hover:text-on-surface transition-all" data-preset="last-month" onclick="FilterManager.applyPreset('last-month')" type="button">Last Month</button>
+              <button class="px-space-sm py-1 rounded-lg font-title-sm text-title-sm text-secondary hover:text-on-surface transition-all" data-preset="last-3-months" onclick="FilterManager.applyPreset('last-3-months')" type="button">Last 3 Months</button>
+              <button class="px-space-sm py-1 rounded-lg font-title-sm text-title-sm text-secondary hover:text-on-surface transition-all" data-preset="last-6-months" onclick="FilterManager.applyPreset('last-6-months')" type="button">Last 6 Months</button>
+            </div>
+          </div>
+
+          <!-- Analytics Key Metrics Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-base">
+            <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+              <div class="flex items-center justify-between text-secondary">
+                <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Top Spend Category</span>
+                <span class="material-symbols-outlined text-[20px] text-primary">restaurant</span>
+              </div>
+              <div class="mt-space-sm">
+                <span id="analytics-top-cat-name" class="font-headline-sm text-headline-sm font-bold text-on-surface truncate block">None</span>
+                <p id="analytics-top-cat-sub" class="font-body-sm text-body-sm text-secondary mt-1">₹0 (0% share)</p>
+              </div>
+            </div>
+
+            <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+              <div class="flex items-center justify-between text-secondary">
+                <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Avg. Daily Outlay</span>
+                <span class="material-symbols-outlined text-[20px] text-tertiary">calendar_view_day</span>
+              </div>
+              <div class="mt-space-sm">
+                <span id="analytics-daily-avg" class="font-headline-sm text-headline-sm font-bold text-on-surface">₹0 / day</span>
+                <p class="font-body-sm text-body-sm text-tertiary font-semibold mt-1">Calculated for period</p>
+              </div>
+            </div>
+
+            <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+              <div class="flex items-center justify-between text-secondary">
+                <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Peak Outflow Day</span>
+                <span class="material-symbols-outlined text-[20px] text-error">event_busy</span>
+              </div>
+              <div class="mt-space-sm">
+                <span id="analytics-peak-day" class="font-headline-sm text-headline-sm font-bold text-on-surface">None</span>
+                <p id="analytics-peak-day-sub" class="font-body-sm text-body-sm text-secondary mt-1">₹0 recorded</p>
+              </div>
+            </div>
+
+            <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+              <div class="flex items-center justify-between text-secondary">
+                <span class="font-label-sm text-label-sm font-bold uppercase tracking-wider">Settled Count</span>
+                <span class="material-symbols-outlined text-[20px] text-secondary">receipt</span>
+              </div>
+              <div class="mt-space-sm">
+                <span id="analytics-settled-count" class="font-headline-sm text-headline-sm font-bold text-on-surface">0 Records</span>
+                <p id="analytics-settled-count-sub" class="font-body-sm text-body-sm text-secondary mt-1">0 debits · 0 credits</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Detailed Category Spending Donut Chart & Itemized Table -->
+          <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col gap-space-lg">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pb-space-xs">
+              <div>
+                <h2 class="font-headline-md text-headline-md text-on-surface font-bold">Category Spending Allocation</h2>
+                <p class="font-body-md text-body-md text-secondary">Full categorical proportion for selected period</p>
+              </div>
+              <div class="flex items-center gap-space-xs">
+                <span id="analytics-donut-total-badge" class="px-2.5 py-1 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-bold">Period Summary</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
+              <!-- SVG Donut Chart -->
+              <div class="lg:col-span-5 flex flex-col items-center justify-center">
+                <div class="relative w-64 h-64 flex items-center justify-center">
+                  <svg id="analytics-donut-svg" class="w-full h-full -rotate-90" viewBox="0 0 42 42">
+                    <!-- Dynamically rendered -->
+                  </svg>
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
+                    <span class="font-label-sm text-label-sm uppercase tracking-widest text-secondary font-bold">Allocated</span>
+                    <span id="analytics-donut-total" class="font-headline-md text-headline-md font-bold text-on-surface">₹0</span>
+                    <span id="analytics-donut-cat-count" class="font-label-sm text-label-sm text-primary font-semibold">0 Categories</span>
+                  </div>
+                </div>
+                <p class="font-body-sm text-body-sm text-secondary mt-3">Calculated across verified settlement channels</p>
+              </div>
+
+              <!-- Itemized Category Breakdown Table -->
+              <div class="lg:col-span-7 overflow-x-auto">
+                <table class="w-full text-left font-body-sm text-body-sm">
+                  <thead>
+                    <tr class="bg-surface-container-low text-secondary font-semibold uppercase text-[11px] tracking-wider">
+                      <th class="py-space-sm px-space-md rounded-l-lg">Category</th>
+                      <th class="py-space-sm px-space-md">Transactions</th>
+                      <th class="py-space-sm px-space-md">Allocation</th>
+                      <th class="py-space-sm px-space-md">Notes</th>
+                      <th class="py-space-sm px-space-md text-right rounded-r-lg">Total Outlay</th>
+                    </tr>
+                  </thead>
+                  <tbody id="analytics-category-tbody" class="divide-y divide-surface-container-low">
+                    <!-- Dynamically populated -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Export & Accounting Reconciliation Strip -->
+          <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+            <div class="flex items-center gap-space-sm">
+              <div class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[24px]">cloud_sync</span>
+              </div>
+              <div>
+                <span class="font-title-sm text-title-sm font-bold text-on-surface">Automated Ledger Reconciliation</span>
+                <p class="font-body-sm text-body-sm text-secondary">All transactions verified and stored locally in your SQLite database.</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-space-xs">
+              <button class="px-space-base py-space-xs rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-title-sm text-title-sm flex items-center gap-1 transition-all" onclick="App.triggerCsvExport()" type="button">
+                <span class="material-symbols-outlined text-[18px]">download</span>
+                <span>Download Ledger CSV</span>
+              </button>
+              <button class="px-space-base py-space-xs rounded-lg bg-primary hover:bg-primary-container text-on-primary font-title-sm text-title-sm flex items-center gap-1 transition-all shadow-sm font-semibold" onclick="App.refreshAllViews()" type="button">
+                <span class="material-symbols-outlined text-[18px]">refresh</span>
+                <span>Sync Now</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TAB 4: CALENDAR VIEW                                              -->
+        <!-- ================================================================= -->
+        <div class="tab-content flex flex-col gap-space-xl hidden" id="tab-calendar">
+          
+          <!-- Page Header & Action Bar -->
+          <div class="flex flex-col gap-space-md">
+            <div class="flex items-center gap-space-xs">
+              <span class="font-label-sm text-label-sm text-primary tracking-widest uppercase font-bold">Financial Calendar</span>
+              <span class="text-outline-variant font-label-sm text-label-sm">•</span>
+              <span id="calendar-header-title" class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">September 2026</span>
+            </div>
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+              <div class="space-y-space-2xs">
+                <h1 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">Expense Calendar</h1>
+                <p class="font-body-md text-body-md text-on-surface-variant">Visualize daily cash outflows, identify high-spending days, and review transactional breakdown by date.</p>
+              </div>
+              <div class="flex flex-wrap items-center gap-space-sm">
+                <!-- Date Navigator Strip -->
+                <div class="flex items-center bg-surface-container-lowest shadow-sm rounded-lg p-space-2xs">
+                  <button class="p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" title="Previous Month" type="button" onclick="CalendarController.prevMonth()">
+                    <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+                  </button>
+                  <span id="calendar-nav-title" class="font-title-sm text-title-sm text-on-surface font-bold px-space-sm whitespace-nowrap">September 2026</span>
+                  <button class="p-space-xs text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low rounded-lg transition-colors" title="Next Month" type="button" onclick="CalendarController.nextMonth()">
+                    <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                  </button>
+                  <button class="ml-space-2xs px-space-sm py-space-xs font-label-md text-label-md bg-surface-container text-on-surface font-semibold rounded-lg hover:bg-surface-container-high transition-colors" type="button" onclick="CalendarController.goToToday()">Today</button>
+                </div>
+                <!-- Main Add Transaction CTA -->
+                <button class="btn-open-add-modal inline-flex items-center gap-space-xs px-space-md py-space-sm bg-primary text-on-primary font-title-sm text-title-sm rounded-lg hover:bg-primary-container transition-colors shadow-sm font-semibold" type="button">
+                  <span class="material-symbols-outlined text-[18px]">add</span>
+                  <span>Add Transaction</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary Metric Strip -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md">
+            <!-- Total Spent -->
+            <div class="bg-surface-container-lowest shadow-sm rounded-xl p-space-lg flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Total Spent This Month</span>
+                <span class="p-space-xs rounded-lg bg-surface-container-low text-primary material-symbols-outlined text-[20px]">account_balance_wallet</span>
+              </div>
+              <div class="mt-space-md flex items-baseline gap-space-xs">
+                <span id="cal-total-spent" class="font-headline-lg text-headline-lg text-on-surface font-bold">₹0</span>
+                <span id="cal-monthly-budget" class="font-label-md text-label-md text-on-surface-variant">/ ₹35,000</span>
+              </div>
+              <div class="mt-space-sm flex items-center justify-between text-body-sm font-body-sm">
+                <span class="text-tertiary flex items-center gap-space-2xs font-semibold">
+                  <span class="material-symbols-outlined text-[16px]">verified</span> Real Outflow
+                </span>
+                <span class="text-on-surface-variant">Monthly Cap</span>
+              </div>
+            </div>
+
+            <!-- Daily Average -->
+            <div class="bg-surface-container-lowest shadow-sm rounded-xl p-space-lg flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Daily Average Outflow</span>
+                <span class="p-space-xs rounded-lg bg-surface-container-low text-secondary material-symbols-outlined text-[20px]">query_stats</span>
+              </div>
+              <div class="mt-space-md flex items-baseline gap-space-xs">
+                <span id="cal-daily-avg" class="font-headline-lg text-headline-lg text-on-surface font-bold">₹0</span>
+                <span class="font-label-md text-label-md text-on-surface-variant">/ day</span>
+              </div>
+              <div class="mt-space-sm flex items-center justify-between text-body-sm font-body-sm">
+                <span class="text-on-surface-variant">Active run rate</span>
+                <span class="inline-flex px-space-xs py-space-2xs rounded-full bg-surface-container text-primary font-label-sm text-label-sm font-semibold">Tracked</span>
+              </div>
+            </div>
+
+            <!-- Peak Outflow Day -->
+            <div class="bg-surface-container-lowest shadow-sm rounded-xl p-space-lg flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Peak Outflow Day</span>
+                <span class="p-space-xs rounded-lg bg-error-container text-error material-symbols-outlined text-[20px]">local_fire_department</span>
+              </div>
+              <div class="mt-space-md flex items-baseline gap-space-xs">
+                <span id="cal-peak-amount" class="font-headline-lg text-headline-lg text-error font-bold">₹0</span>
+                <span id="cal-peak-date" class="font-title-sm text-title-sm text-on-surface font-semibold ml-space-xs">None</span>
+              </div>
+              <div class="mt-space-sm flex items-center justify-between text-body-sm font-body-sm">
+                <span class="text-error font-semibold flex items-center gap-space-2xs">
+                  <span class="material-symbols-outlined text-[16px]">priority_high</span> Highest Spending
+                </span>
+                <span class="text-on-surface-variant">Peak</span>
+              </div>
+            </div>
+
+            <!-- Zero Spend Days -->
+            <div class="bg-surface-container-lowest shadow-sm rounded-xl p-space-lg flex flex-col justify-between">
+              <div class="flex items-center justify-between">
+                <span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Zero-Spend Days</span>
+                <span class="p-space-xs rounded-lg bg-surface-container-low text-tertiary material-symbols-outlined text-[20px]">sentiment_very_satisfied</span>
+              </div>
+              <div class="mt-space-md flex items-baseline gap-space-xs">
+                <span id="cal-zero-days" class="font-headline-lg text-headline-lg text-tertiary font-bold">0 Days</span>
+                <span class="font-label-md text-label-md text-on-surface-variant">Achieved</span>
+              </div>
+              <div class="mt-space-sm flex items-center justify-between text-body-sm font-body-sm">
+                <span class="text-tertiary font-semibold flex items-center gap-space-2xs">
+                  <span class="material-symbols-outlined text-[16px]">verified</span> Healthy Habits
+                </span>
+                <span class="text-on-surface-variant">Saved</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Calendar Two-Column Grid -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+            
+            <!-- Left: Calendar Card Container (8 cols) -->
+            <div class="lg:col-span-8 flex flex-col gap-space-md">
+              <div class="bg-surface-container-lowest shadow-sm rounded-xl p-space-md sm:p-space-lg">
+                <!-- Weekday Headers (Mon to Sun) -->
+                <div class="grid grid-cols-7 gap-space-xs mb-space-xs text-center">
+                  <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold py-space-xs">Mon</span>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold py-space-xs">Tue</span>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold py-space-xs">Wed</span>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold py-space-xs">Thu</span>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-semibold py-space-xs">Fri</span>
+                  <span class="font-label-sm text-label-sm text-primary uppercase font-bold py-space-xs">Sat</span>
+                  <span class="font-label-sm text-label-sm text-primary uppercase font-bold py-space-xs">Sun</span>
+                </div>
+
+                <!-- Calendar Days Grid (Dynamically Populated) -->
+                <div id="calendar-grid" class="grid grid-cols-7 gap-space-2xs"></div>
+
+                <!-- Legend Strip at Bottom -->
+                <div class="mt-space-lg pt-space-md flex flex-wrap items-center justify-between gap-space-sm bg-surface-container-low/50 p-space-sm rounded-lg">
+                  <div class="flex flex-wrap items-center gap-space-md">
+                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider">Outflow Legend:</span>
+                    <div class="flex items-center gap-space-2xs">
+                      <span class="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+                      <span class="font-label-sm text-label-sm text-on-surface font-medium">Low (&lt; 300)</span>
+                    </div>
+                    <div class="flex items-center gap-space-2xs">
+                      <span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+                      <span class="font-label-sm text-label-sm text-on-surface font-medium">Moderate (300 - 750)</span>
+                    </div>
+                    <div class="flex items-center gap-space-2xs">
+                      <span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+                      <span class="font-label-sm text-label-sm text-on-surface font-medium">High (750+)</span>
+                    </div>
+                    <div class="flex items-center gap-space-2xs">
+                      <span class="material-symbols-outlined text-[14px] text-tertiary">check_circle</span>
+                      <span class="font-label-sm text-label-sm text-on-surface font-medium">No spend</span>
+                    </div>
+                  </div>
+                  <span class="font-label-sm text-label-sm text-on-surface-variant">Click any date to inspect transactions</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Date Inspection Panel (4 cols) -->
+            <div class="lg:col-span-4 flex flex-col gap-space-md sticky top-20">
+              <div class="bg-surface-container-lowest shadow-sm rounded-xl p-space-lg flex flex-col gap-space-md">
+                <div class="flex items-center justify-between pb-space-xs">
+                  <div class="flex flex-col">
+                    <span class="font-label-sm text-label-sm text-primary uppercase font-bold tracking-wider">Date Inspection</span>
+                    <h2 id="cal-inspect-date-title" class="font-headline-sm text-headline-sm text-on-surface font-bold">Select a date</h2>
+                  </div>
+                  <span class="inline-flex items-center gap-space-2xs px-space-sm py-space-2xs rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm font-semibold">
+                    <span>Verified</span>
+                  </span>
+                </div>
+
+                <!-- Date Spend Summary Box -->
+                <div class="bg-surface-container-low rounded-xl p-space-md flex flex-col gap-space-sm">
+                  <div class="flex items-baseline justify-between">
+                    <span class="font-label-md text-label-md text-on-surface-variant font-medium">Total Outflow</span>
+                    <span id="cal-inspect-total-outflow" class="font-headline-md text-headline-md text-on-surface font-bold">₹0.00</span>
+                  </div>
+                  <div class="flex items-center justify-between text-label-sm font-label-sm">
+                    <span class="text-on-surface-variant">Status:</span>
+                    <span id="cal-inspect-budget-status" class="font-semibold text-tertiary">Zero Outflow</span>
+                  </div>
+                  <div class="pt-space-2xs flex items-center justify-between text-body-sm font-body-sm border-t border-surface-container">
+                    <span class="text-on-surface-variant">Logged Transactions:</span>
+                    <span id="cal-inspect-tx-count" class="font-bold text-on-surface">0 items</span>
+                  </div>
+                </div>
+
+                <!-- Itemized Ledger List for Selected Day -->
+                <div class="flex flex-col gap-space-sm">
+                  <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Itemized Ledger</span>
+                  <div id="cal-inspect-ledger" class="flex flex-col gap-space-xs max-h-72 overflow-y-auto pr-1"></div>
+                </div>
+
+                <!-- Quick Day Actions -->
+                <div class="flex flex-col gap-space-xs pt-space-xs">
+                  <button id="cal-btn-add-for-date" class="w-full inline-flex items-center justify-center gap-space-xs px-space-md py-space-sm bg-primary text-on-primary font-title-sm text-title-sm rounded-lg hover:bg-primary-container transition-colors shadow-sm font-semibold" type="button">
+                    <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                    <span>Add Transaction for Date</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TAB 5: CATEGORIES VIEW                                            -->
+        <!-- ================================================================= -->
+        <div class="tab-content flex flex-col gap-space-xl hidden" id="tab-categories">
+          <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col gap-space-md">
+            <div>
+              <h1 class="font-headline-md text-headline-md text-on-surface font-bold">Categories Management</h1>
+              <p class="font-body-md text-body-md text-secondary mt-1">Preset and customizable categories used for intelligent expense tracking.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-space-base pt-space-md">
+              <div class="p-space-md bg-surface-container-low rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-primary text-on-primary flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">restaurant</span>
+                  </div>
+                  <div>
+                    <span class="font-title-sm text-title-sm font-bold text-on-surface">Food &amp; Dining</span>
+                    <p class="font-label-sm text-label-sm text-secondary">Expense · #00685f</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">Active</span>
+              </div>
+
+              <div class="p-space-md bg-surface-container-low rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-tertiary text-on-tertiary flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">wifi</span>
+                  </div>
+                  <div>
+                    <span class="font-title-sm text-title-sm font-bold text-on-surface">Bills &amp; Utilities</span>
+                    <p class="font-label-sm text-label-sm text-secondary">Expense · #17684e</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">Active</span>
+              </div>
+
+              <div class="p-space-md bg-surface-container-low rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">shopping_bag</span>
+                  </div>
+                  <div>
+                    <span class="font-title-sm text-title-sm font-bold text-on-surface">Shopping</span>
+                    <p class="font-label-sm text-label-sm text-secondary">Expense · #008378</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">Active</span>
+              </div>
+
+              <div class="p-space-md bg-surface-container-low rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-secondary text-on-secondary flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">directions_car</span>
+                  </div>
+                  <div>
+                    <span class="font-title-sm text-title-sm font-bold text-on-surface">Transport</span>
+                    <p class="font-label-sm text-label-sm text-secondary">Expense · #565e74</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">Active</span>
+              </div>
+
+              <div class="p-space-md bg-surface-container-low rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-tertiary-container text-on-tertiary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">movie</span>
+                  </div>
+                  <div>
+                    <span class="font-title-sm text-title-sm font-bold text-on-surface">Entertainment</span>
+                    <p class="font-label-sm text-label-sm text-secondary">Expense · #378166</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">Active</span>
+              </div>
+
+              <div class="p-space-md bg-surface-container-low rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-primary-fixed-dim text-on-primary-fixed flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">fitness_center</span>
+                  </div>
+                  <div>
+                    <span class="font-title-sm text-title-sm font-bold text-on-surface">Health &amp; Fitness</span>
+                    <p class="font-label-sm text-label-sm text-secondary">Expense · #6bd8cb</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">Active</span>
+              </div>
+
+              <div class="p-space-md bg-surface-container-low rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-tertiary text-on-tertiary flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">payments</span>
+                  </div>
+                  <div>
+                    <span class="font-title-sm text-title-sm font-bold text-on-surface">Salary &amp; Income</span>
+                    <p class="font-label-sm text-label-sm text-secondary">Income Rail · Inflow</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-bold">Income</span>
+              </div>
+
+              <div class="p-space-md bg-surface-container-low rounded-xl flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg bg-surface-variant text-on-surface flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[20px]">more_horiz</span>
+                  </div>
+                  <div>
+                    <span class="font-title-sm text-title-sm font-bold text-on-surface">Others &amp; Misc</span>
+                    <p class="font-label-sm text-label-sm text-secondary">Expense · General</p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-surface-container text-on-surface font-label-sm text-label-sm font-semibold">Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- TAB 6: SETTINGS VIEW                                              -->
+        <!-- ================================================================= -->
+        <div class="tab-content flex flex-col gap-space-xl hidden" id="tab-settings">
+          <div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col gap-space-lg max-w-3xl">
+            <div>
+              <h1 class="font-headline-md text-headline-md text-on-surface font-bold">Profile &amp; Account Settings</h1>
+              <p class="font-body-md text-body-md text-secondary mt-1">Configure your personal preferences, budget ceilings, and database sync options.</p>
+            </div>
+
+            <form id="profile-settings-form" class="flex flex-col gap-space-base">
+              <div>
+                <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Full Name</label>
+                <input id="settings-name-input" type="text" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+              </div>
+
+              <div>
+                <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Email Address</label>
+                <input id="settings-email-input" type="email" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-secondary cursor-not-allowed" disabled>
+                <span class="font-label-sm text-label-sm text-secondary mt-1">Email cannot be modified once registered.</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-base">
+                <div>
+                  <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Monthly Budget Target</label>
+                  <input id="settings-budget-input" type="number" step="100" min="0" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                </div>
+                <div>
+                  <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Currency Symbol</label>
+                  <input id="settings-currency-input" type="text" maxlength="5" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                </div>
+              </div>
+
+              <!-- Supabase Status Box -->
+              <div class="p-space-md bg-surface-container-low rounded-xl border border-surface-container flex flex-col gap-2">
+                <div class="flex items-center gap-2 text-primary font-bold">
+                  <span class="material-symbols-outlined text-[20px]">database</span>
+                  <span>Database &amp; Storage Architecture</span>
+                </div>
+                <p class="font-body-sm text-body-sm text-secondary">
+                  Currently running on high-speed local <strong>SQLite (.db)</strong> with distinct user tables and bcrypt password hashing. 
+                  Schema and REST API models are 100% PostgreSQL &amp; <strong>Supabase ready</strong>.
+                </p>
+              </div>
+
+              <div class="flex items-center gap-space-sm pt-space-xs">
+                <button type="submit" class="px-space-lg py-2.5 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-title-sm text-title-sm font-semibold transition-all shadow-sm">
+                  Save Changes
+                </button>
+                <button type="button" onclick="Auth.handleLogout()" class="px-space-lg py-2.5 bg-error-container hover:bg-red-200 text-on-error-container rounded-lg font-title-sm text-title-sm font-semibold transition-all">
+                  Sign Out
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- ADD / EDIT TRANSACTION MODAL                                      -->
+  <!-- ================================================================= -->
+  <div id="transaction-modal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-lg w-full p-space-xl flex flex-col gap-space-md border border-surface-container">
+      <div class="flex items-center justify-between pb-space-xs border-b border-surface-container-low">
+        <h2 id="modal-tx-title" class="font-headline-sm text-headline-sm text-on-surface font-bold">Add Transaction</h2>
+        <button type="button" class="text-secondary hover:text-on-surface p-1 rounded-lg" onclick="App.closeTransactionModal()">
+          <span class="material-symbols-outlined text-[22px]">close</span>
+        </button>
+      </div>
+
+      <form id="transaction-form" class="flex flex-col gap-space-base">
+        <!-- Type Toggle -->
+        <div>
+          <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Transaction Type</label>
+          <select id="tx-type" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-title-sm text-title-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
+            <option value="expense">Expense (Debit / Outflow)</option>
+            <option value="income">Income (Credit / Inflow)</option>
+          </select>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Merchant / Description *</label>
+          <input id="tx-merchant" type="text" placeholder="e.g. Swiggy, Uber, Amazon, Salary" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface placeholder:text-secondary focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+        </div>
+
+        <!-- Amount & Date -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-base">
+          <div>
+            <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Amount (₹) *</label>
+            <input id="tx-amount" type="number" step="0.01" min="0.01" placeholder="0.00" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-title-sm text-title-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Date *</label>
+            <input id="tx-date" type="date" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-title-sm text-title-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+          </div>
+        </div>
+
+        <!-- Category & Payment Method -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-base">
+          <div>
+            <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Category</label>
+            <select id="tx-category" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
+              <option value="Food & Dining">Food &amp; Dining</option>
+              <option value="Bills & Utilities">Bills &amp; Utilities</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Transport">Transport</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Health & Fitness">Health &amp; Fitness</option>
+              <option value="Salary & Income">Salary &amp; Income</option>
+              <option value="Freelance">Freelance</option>
+              <option value="Investment">Investment</option>
+              <option value="Others & Misc">Others &amp; Misc</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Payment Rail</label>
+            <select id="tx-payment-method" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
+              <option value="UPI">UPI</option>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Debit Card">Debit Card</option>
+              <option value="Net Banking">Net Banking</option>
+              <option value="Cash">Cash</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Time & Notes -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-space-base">
+          <div>
+            <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Time</label>
+            <input id="tx-time" type="time" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Notes / Tags (Optional)</label>
+            <input id="tx-notes" type="text" placeholder="e.g. Dinner with team, monthly fiber bill" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50">
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-space-sm pt-space-xs">
+          <button type="button" class="px-space-md py-2 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-title-sm text-title-sm transition-colors" onclick="App.closeTransactionModal()">
+            Cancel
+          </button>
+          <button id="modal-tx-submit-btn" type="submit" class="px-space-lg py-2 rounded-lg bg-primary hover:bg-primary-container text-on-primary font-title-sm text-title-sm font-semibold shadow-sm transition-all">
+            Save Record
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- DELETE CONFIRMATION MODAL                                         -->
+  <!-- ================================================================= -->
+  <div id="delete-modal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-sm w-full p-space-xl flex flex-col gap-space-md border border-surface-container text-center">
+      <div class="w-12 h-12 rounded-full bg-error-container text-error flex items-center justify-center mx-auto">
+        <span class="material-symbols-outlined text-[28px]">delete</span>
+      </div>
+      <div>
+        <h3 class="font-headline-sm text-headline-sm text-on-surface font-bold">Delete Transaction?</h3>
+        <p class="font-body-sm text-body-sm text-secondary mt-1">This action cannot be undone. The record will be permanently removed from your database.</p>
+      </div>
+      <div class="flex items-center justify-center gap-space-sm pt-space-xs">
+        <button type="button" class="px-space-md py-2 rounded-lg bg-surface-container-low hover:bg-surface-container text-on-surface font-title-sm text-title-sm transition-colors" onclick="App.closeDeleteModal()">
+          Cancel
+        </button>
+        <button type="button" class="px-space-lg py-2 rounded-lg bg-error hover:bg-red-700 text-on-error font-title-sm text-title-sm font-semibold transition-all shadow-sm" onclick="App.confirmDelete()">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- AUTHENTICATION SCREEN / MODAL (Login & Register)                 -->
+  <!-- ================================================================= -->
+  <div id="auth-modal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-md w-full p-space-xl flex flex-col gap-space-lg border border-surface-container">
+      
+      <!-- Brand & Title -->
+      <div class="flex flex-col items-center text-center">
+        <div class="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-on-primary shadow-md mb-2">
+          <span class="material-symbols-outlined text-[28px]">account_balance_wallet</span>
+        </div>
+        <h2 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">SpendWise</h2>
+        <p class="font-body-sm text-body-sm text-secondary mt-1">Distinct multi-user financial center &amp; ledger</p>
+      </div>
+
+      <!-- Sign In vs Sign Up Tabs -->
+      <div class="inline-flex p-1 bg-surface-container-low rounded-xl">
+        <button id="auth-tab-login" class="flex-1 py-1.5 text-center font-title-sm text-title-sm rounded-lg bg-primary text-on-primary font-semibold shadow-sm transition-all" type="button" onclick="showAuthTab('login')">
+          Sign In
+        </button>
+        <button id="auth-tab-register" class="flex-1 py-1.5 text-center font-title-sm text-title-sm rounded-lg text-secondary hover:text-on-surface font-semibold transition-all" type="button" onclick="showAuthTab('register')">
+          Create Account
+        </button>
+      </div>
+
+      <!-- Error message container -->
+      <div id="auth-error-msg" class="hidden p-space-sm rounded-lg bg-error-container text-on-error-container font-body-sm text-body-sm flex items-center gap-2"></div>
+
+      <!-- Login Form -->
+      <form id="form-login" class="flex flex-col gap-space-base">
+        <div>
+          <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Email Address</label>
+          <input id="login-email" type="email" placeholder="user@example.com" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+        </div>
+        <div>
+          <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Password</label>
+          <input id="login-password" type="password" placeholder="••••••••" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-title-sm text-title-sm font-semibold shadow-sm transition-all mt-1">
+          Sign In to SpendWise
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="form-register" class="flex flex-col gap-space-base hidden">
+        <div>
+          <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Full Name</label>
+          <input id="reg-name" type="text" placeholder="Karma Patel" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+        </div>
+        <div>
+          <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Email Address</label>
+          <input id="reg-email" type="email" placeholder="karma@example.com" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+        </div>
+        <div>
+          <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Password</label>
+          <input id="reg-password" type="password" placeholder="At least 4 characters" minlength="4" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-title-sm text-title-sm font-semibold shadow-sm transition-all mt-1">
+          Create Distinct User Account
+        </button>
+      </form>
+
+      <!-- Quick Demo Account Shortcut -->
+      <div class="pt-space-xs border-t border-surface-container-low flex flex-col items-center">
+        <button id="btn-demo-login" type="button" class="font-label-sm text-label-sm text-secondary hover:text-primary transition-colors flex items-center gap-1">
+          <span class="material-symbols-outlined text-[16px]">flash_on</span>
+          <span>Quick Demo Account (karma@spendwise.internal)</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================================= -->
+  <!-- FLOATING TOAST NOTIFICATIONS                                      -->
+  <!-- ================================================================= -->
+  <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
+
+  <!-- Switch Auth Tabs helper -->
+  <script>
+    function showAuthTab(tab) {
+      const loginForm = document.getElementById('form-login');
+      const regForm = document.getElementById('form-register');
+      const loginTabBtn = document.getElementById('auth-tab-login');
+      const regTabBtn = document.getElementById('auth-tab-register');
+      const errBox = document.getElementById('auth-error-msg');
+      if (errBox) errBox.classList.add('hidden');
+
+      if (tab === 'login') {
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+        loginTabBtn.className = 'flex-1 py-1.5 text-center font-title-sm text-title-sm rounded-lg bg-primary text-on-primary font-semibold shadow-sm transition-all';
+        regTabBtn.className = 'flex-1 py-1.5 text-center font-title-sm text-title-sm rounded-lg text-secondary hover:text-on-surface font-semibold transition-all';
+      } else {
+        loginForm.classList.add('hidden');
+        regForm.classList.remove('hidden');
+        regTabBtn.className = 'flex-1 py-1.5 text-center font-title-sm text-title-sm rounded-lg bg-primary text-on-primary font-semibold shadow-sm transition-all';
+        loginTabBtn.className = 'flex-1 py-1.5 text-center font-title-sm text-title-sm rounded-lg text-secondary hover:text-on-surface font-semibold transition-all';
+      }
+    }
+  </script>
+
+  <!-- Application Scripts -->
+  <script src="/static/js/api.js"></script>
+  <script src="/static/js/charts.js"></script>
+  <script src="/static/js/filters.js"></script>
+  <script src="/static/js/calendar.js"></script>
+  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/app.js"></script>
+
+</body>
+</html>
