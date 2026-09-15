@@ -43,6 +43,11 @@ CORS(app)
 db.init_app(app)
 bcrypt.init_app(app)
 
+# Explicit teardown to guarantee all connections are returned to SQLAlchemy pool after each request
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    db.session.remove()
+
 # Helper: Get current authenticated user
 def get_current_user():
     user_id = session.get('user_id')
@@ -73,11 +78,14 @@ def health_check():
     error_msg = None
     status_code = 200
     try:
-        db.session.execute(text('SELECT 1'))
+        with db.engine.connect() as conn:
+            conn.execute(text('SELECT 1'))
     except Exception as e:
         db_status = 'error'
         error_msg = str(e)
         status_code = 503
+    finally:
+        db.session.remove()
 
     return jsonify({
         'status': 'healthy' if db_status == 'ok' else 'degraded',
@@ -558,8 +566,8 @@ def export_csv():
 # -------------------------------------------------------------
 # Database Setup & Initial Seed
 # -------------------------------------------------------------
-with app.app_context():
-    db.create_all()
+# with app.app_context():
+#     db.create_all()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

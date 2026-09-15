@@ -46,10 +46,13 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Engine options for Supabase cloud PostgreSQL connection stability
-    # Prevents idle connection dropouts when using Supabase pooler/PgBouncer
+    # Optimized for a small personal Expense Monitoring application with low connection usage
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
-        "pool_recycle": 300,
+        "pool_recycle": 1800,
+        "pool_size": 3,
+        "max_overflow": 2,
+        "pool_timeout": 30,
     }
 
     # Session cookie configuration (Persistent 30-day session)
