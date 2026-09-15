@@ -136,13 +136,13 @@ const CalendarController = {
     for (let i = range.firstDayWeekday - 1; i >= 0; i--) {
       const prevDay = prevMonthEnd - i;
       const cell = document.createElement('div');
-      cell.className = 'min-h-[92px] p-space-xs rounded-lg bg-surface-container-low/40 flex flex-col justify-between opacity-40 cursor-not-allowed select-none';
+      cell.className = 'min-h-[58px] sm:min-h-[92px] p-1 sm:p-space-xs rounded-lg bg-surface-container-low/40 flex flex-col justify-between opacity-40 cursor-not-allowed select-none';
       cell.innerHTML = `
         <div class="flex items-center justify-between">
-          <span class="font-label-md text-label-md text-on-surface-variant font-medium">${prevDay}</span>
+          <span class="text-xs sm:text-label-md text-on-surface-variant font-medium">${prevDay}</span>
         </div>
         <div class="text-right">
-          <span class="font-body-sm text-body-sm text-on-surface-variant">${curr}0</span>
+          <span class="text-[10px] sm:text-body-sm text-on-surface-variant">${curr}0</span>
         </div>
       `;
       gridContainer.appendChild(cell);
@@ -160,33 +160,33 @@ const CalendarController = {
       let cardBg = 'bg-surface hover:bg-surface-container-low';
 
       if (expenseAmt === 0) {
-        badgeHtml = `<span class="material-symbols-outlined text-[14px] text-tertiary">check_circle</span>`;
+        badgeHtml = `<span class="material-symbols-outlined text-[12px] sm:text-[14px] text-tertiary">check_circle</span>`;
       } else if (expenseAmt < 300) {
         dotClass = 'bg-tertiary';
-        badgeHtml = `<span class="inline-block px-1 rounded bg-tertiary-fixed text-on-tertiary-fixed text-[10px] font-semibold">Low</span>`;
+        badgeHtml = `<span class="inline-block px-1 rounded bg-tertiary-fixed text-on-tertiary-fixed text-[9px] sm:text-[10px] font-semibold">Low</span>`;
       } else if (expenseAmt <= 750) {
         dotClass = 'bg-secondary';
-        badgeHtml = `<span class="inline-block px-1 rounded bg-secondary-container text-on-secondary-fixed text-[10px] font-semibold">Mid</span>`;
+        badgeHtml = `<span class="inline-block px-1 rounded bg-secondary-container text-on-secondary-fixed text-[9px] sm:text-[10px] font-semibold">Mid</span>`;
       } else {
         dotClass = 'bg-error';
         cardBg = 'bg-error-container/20 hover:bg-error-container/40';
-        badgeHtml = `<span class="inline-block px-1 rounded bg-error-container text-on-error-container text-[10px] font-bold">High</span>`;
+        badgeHtml = `<span class="inline-block px-1 rounded bg-error-container text-on-error-container text-[9px] sm:text-[10px] font-bold">High</span>`;
       }
 
       const cell = document.createElement('div');
-      cell.className = `min-h-[92px] p-space-xs rounded-lg ${cardBg} transition-colors cursor-pointer flex flex-col justify-between calendar-day-card group ${isSelected ? 'calendar-day-selected' : ''}`;
+      cell.className = `min-h-[58px] sm:min-h-[92px] p-1 sm:p-space-xs rounded-lg ${cardBg} transition-colors cursor-pointer flex flex-col justify-between calendar-day-card group ${isSelected ? 'calendar-day-selected' : ''}`;
       cell.setAttribute('data-date', dateStr);
 
       cell.innerHTML = `
         <div class="flex items-center justify-between">
-          <span class="font-title-sm text-title-sm ${isSelected ? 'font-bold text-primary' : 'text-on-surface font-semibold'}">${d}</span>
-          ${expenseAmt === 0 ? badgeHtml : `<span class="w-2 h-2 rounded-full ${dotClass}"></span>`}
+          <span class="text-xs sm:text-title-sm ${isSelected ? 'font-bold text-primary' : 'text-on-surface font-semibold'}">${d}</span>
+          ${expenseAmt === 0 ? badgeHtml : `<span class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${dotClass}"></span>`}
         </div>
-        <div class="space-y-space-2xs">
-          <div class="font-title-sm text-title-sm ${expenseAmt > 750 ? 'text-error font-bold' : 'text-on-surface font-bold'}">
+        <div class="space-y-0.5 sm:space-y-space-2xs">
+          <div class="text-[10px] sm:text-title-sm font-semibold sm:font-bold truncate ${expenseAmt > 750 ? 'text-error font-bold' : 'text-on-surface'}">
             ${curr}${Math.round(expenseAmt).toLocaleString('en-IN')}
           </div>
-          <div class="font-label-sm text-label-sm text-on-surface-variant flex items-center justify-between">
+          <div class="hidden sm:flex font-label-sm text-label-sm text-on-surface-variant items-center justify-between">
             <span>${txCount > 0 ? `${txCount} txn${txCount === 1 ? '' : 's'}` : 'No spend'}</span>
             ${expenseAmt > 0 ? badgeHtml : ''}
           </div>
@@ -205,13 +205,13 @@ const CalendarController = {
     const remaining = (7 - (totalRendered % 7)) % 7;
     for (let nextDay = 1; nextDay <= remaining; nextDay++) {
       const cell = document.createElement('div');
-      cell.className = 'min-h-[92px] p-space-xs rounded-lg bg-surface-container-low/40 flex flex-col justify-between opacity-40 cursor-not-allowed select-none';
+      cell.className = 'min-h-[58px] sm:min-h-[92px] p-1 sm:p-space-xs rounded-lg bg-surface-container-low/40 flex flex-col justify-between opacity-40 cursor-not-allowed select-none';
       cell.innerHTML = `
         <div class="flex items-center justify-between">
-          <span class="font-label-md text-label-md text-on-surface-variant font-medium">${nextDay}</span>
+          <span class="text-xs sm:text-label-md text-on-surface-variant font-medium">${nextDay}</span>
         </div>
         <div class="text-right">
-          <span class="font-body-sm text-body-sm text-on-surface-variant">${curr}0</span>
+          <span class="text-[10px] sm:text-body-sm text-on-surface-variant">${curr}0</span>
         </div>
       `;
       gridContainer.appendChild(cell);

@@ -17,8 +17,9 @@ import io
 import csv
 from datetime import datetime, date, timedelta
 import calendar
-from flask import Flask, render_template, request, jsonify, session, Response
+from flask import Flask, render_template, request, jsonify, session, Response, send_from_directory
 from flask_cors import CORS
+from sqlalchemy import text
 from config import Config
 from models import db, bcrypt, User, Transaction, DEFAULT_CATEGORIES
 
@@ -35,6 +36,43 @@ def get_current_user():
     if not user_id:
         return None
     return db.session.get(User, user_id)
+
+# -------------------------------------------------------------
+# PWA & Service Worker Routes
+# -------------------------------------------------------------
+@app.route('/manifest.json')
+def manifest():
+    return send_from_directory('static', 'manifest.json', mimetype='application/manifest+json')
+
+@app.route('/sw.js')
+def service_worker():
+    response = send_from_directory('static', 'sw.js', mimetype='application/javascript')
+    response.headers['Service-Worker-Allowed'] = '/'
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return response
+
+# -------------------------------------------------------------
+# System Health & Backend Monitoring Endpoint
+# -------------------------------------------------------------
+@app.route('/health', methods=['GET'])
+def health_check():
+    db_status = 'ok'
+    error_msg = None
+    status_code = 200
+    try:
+        db.session.execute(text('SELECT 1'))
+    except Exception as e:
+        db_status = 'error'
+        error_msg = str(e)
+        status_code = 503
+
+    return jsonify({
+        'status': 'healthy' if db_status == 'ok' else 'degraded',
+        'backend': 'ok',
+        'database': db_status,
+        'error': error_msg,
+        'timestamp': datetime.utcnow().isoformat()
+    }), status_code
 
 # -------------------------------------------------------------
 # Web Page Route
@@ -210,6 +248,26 @@ def add_transaction():
 
     if tx_type not in ['expense', 'income']:
         tx_type = 'expense'
+
+    # Deduplication Guard: Check if an identical transaction was recorded in the last 15 seconds
+    cutoff_time = datetime.utcnow() - timedelta(seconds=15)
+    recent_dup = Transaction.query.filter(
+        Transaction.user_id == user.id,
+        Transaction.merchant == merchant,
+        Transaction.amount == amount,
+        Transaction.type == tx_type,
+        Transaction.category == category,
+        Transaction.payment_method == payment_method,
+        Transaction.date == tx_date,
+        Transaction.created_at >= cutoff_time
+    ).first()
+
+    if recent_dup:
+        return jsonify({
+            'status': 'success',
+            'message': 'Transaction already recorded.',
+            'transaction': recent_dup.to_dict()
+        }), 200
 
     tx = Transaction(
         user_id=user.id,

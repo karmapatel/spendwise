@@ -21,6 +21,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SpendWise - Financial Center & Expense Tracker</title>
   
+  <!-- PWA Meta Tags & Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#00685f">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="SpendWise">
+  <link rel="apple-touch-icon" href="/static/icons/icon-apple-touch.png">
+  <link rel="icon" type="image/png" sizes="80x80" href="/static/icons/logo.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/static/icons/icon-192.png">
+
   <!-- Google Fonts & Material Symbols -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -105,16 +116,24 @@
 <body class="bg-background font-body-md text-body-md text-on-surface antialiased select-none">
 
   <!-- ================================================================= -->
+  <!-- MOBILE SIDEBAR BACKDROP                                            -->
+  <!-- ================================================================= -->
+  <div id="sidebar-backdrop" class="fixed inset-0 bg-on-surface/50 backdrop-blur-xs z-40 hidden lg:hidden transition-opacity" onclick="App.toggleMobileSidebar(false)"></div>
+
+  <!-- ================================================================= -->
   <!-- SIDEBAR NAVIGATION                                                -->
   <!-- ================================================================= -->
-  <aside class="fixed left-0 top-0 h-screen w-64 bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between py-space-base">
+  <aside id="app-sidebar" class="fixed left-0 top-0 h-screen w-64 bg-surface-container-lowest shadow-xl lg:shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between py-space-base transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
     <div class="flex flex-col px-space-base">
-      <!-- Brand Logo -->
-      <div class="flex items-center gap-space-sm pb-space-lg px-space-xs cursor-pointer" onclick="App.switchTab('dashboard')">
-        <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm">
-          <span class="material-symbols-outlined text-[22px]">account_balance_wallet</span>
+      <!-- Brand Logo + Mobile Close Button -->
+      <div class="flex items-center justify-between pb-space-lg px-space-xs">
+        <div class="flex items-center gap-space-sm cursor-pointer" onclick="App.switchTab('dashboard')">
+          <img src="/static/icons/logo.png" alt="SpendWise Logo" class="w-9 h-9 rounded-xl object-contain shadow-sm">
+          <span class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight">SpendWise</span>
         </div>
-        <span class="font-headline-sm text-headline-sm text-on-surface font-bold tracking-tight">SpendWise</span>
+        <button type="button" class="lg:hidden p-1.5 rounded-lg text-secondary hover:text-on-surface hover:bg-surface-container-low transition-colors" onclick="App.toggleMobileSidebar(false)" aria-label="Close menu">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
       </div>
 
       <!-- Main Menu Section -->
@@ -169,7 +188,7 @@
           </div>
           <div class="flex flex-col min-w-0">
             <span class="user-name-display font-title-sm text-title-sm text-on-surface font-semibold leading-tight truncate">Karma</span>
-            <span class="font-label-sm text-label-sm text-secondary">Pro Tier</span>
+            <span class="font-label-sm text-label-sm text-secondary">Active Account</span>
           </div>
         </div>
         <span class="material-symbols-outlined text-[18px] text-secondary">chevron_right</span>
@@ -180,58 +199,67 @@
   <!-- ================================================================= -->
   <!-- MAIN APP CONTAINER                                                -->
   <!-- ================================================================= -->
-  <div class="pl-64 flex flex-col min-h-screen">
+  <div class="pl-0 lg:pl-64 flex flex-col min-h-screen">
     
     <!-- Top Fixed Header -->
-    <header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-space-xl">
-      <div class="flex items-center gap-space-sm">
-        <div class="flex items-center gap-space-xs text-on-surface-variant bg-surface-container-low px-space-sm py-space-xs rounded-lg">
-          <span class="material-symbols-outlined text-[18px]">calendar_today</span>
-          <span id="topbar-month-indicator" class="font-title-sm text-title-sm text-on-surface font-semibold">September 2026</span>
+    <header class="fixed top-0 left-0 lg:left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-30 flex items-center justify-between px-3 sm:px-6 lg:px-space-xl">
+      <div class="flex items-center gap-2 sm:gap-space-sm">
+        <!-- Mobile Sidebar Toggle -->
+        <button id="btn-toggle-sidebar" type="button" class="lg:hidden p-1.5 -ml-1 rounded-lg text-on-surface hover:bg-surface-container-low transition-colors flex items-center justify-center" onclick="App.toggleMobileSidebar(true)" aria-label="Open Navigation">
+          <span class="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+
+        <img src="/static/icons/logo.png" alt="SpendWise Logo" class="lg:hidden w-7 h-7 rounded-lg object-contain cursor-pointer" onclick="App.switchTab('dashboard')">
+
+        <div class="flex items-center gap-space-xs text-on-surface-variant bg-surface-container-low px-2 sm:px-space-sm py-1 sm:py-space-xs rounded-lg">
+          <span class="material-symbols-outlined text-[16px] sm:text-[18px]">calendar_today</span>
+          <span id="topbar-month-indicator" class="font-title-sm text-title-sm text-on-surface font-semibold truncate max-w-[100px] sm:max-w-none">September 2026</span>
+        </div>
+        <!-- Backend & Network Connection Status Indicator -->
+        <div id="connection-status-pill" class="flex items-center gap-1.5 px-2 sm:px-space-sm py-1 rounded-full text-label-sm font-label-sm font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/70 transition-all" title="Connection & Database Health">
+          <span id="connection-status-dot" class="w-2 h-2 rounded-full bg-emerald-500 transition-colors"></span>
+          <span id="connection-status-text" class="hidden xs:inline sm:inline">Connected</span>
         </div>
       </div>
-      <div class="flex items-center gap-space-md">
-        <button class="relative p-space-xs rounded-full text-on-surface-variant hover:bg-surface-container-low hover:text-on-surface transition-colors flex items-center justify-center" type="button" title="Notifications">
-          <span class="material-symbols-outlined text-[22px]">notifications</span>
-          <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-tertiary ring-2 ring-surface-container-lowest animate-pulse"></span>
-        </button>
-        <button class="btn-open-add-modal inline-flex items-center gap-space-xs px-space-base py-space-xs bg-primary hover:bg-primary-container text-on-primary rounded-lg font-title-sm text-title-sm shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] hover:shadow-md transition-all font-semibold" type="button">
+      <div class="flex items-center gap-2 sm:gap-space-md">
+        <button class="btn-open-add-modal inline-flex items-center gap-1 px-3 sm:px-space-base py-1.5 sm:py-space-xs bg-primary hover:bg-primary-container text-on-primary rounded-lg font-title-sm text-title-sm shadow-[0_1px_3px_0_rgba(15,23,42,0.04)] hover:shadow-md transition-all font-semibold" type="button">
           <span class="material-symbols-outlined text-[18px]">add</span>
-          <span>Add Transaction</span>
+          <span class="hidden sm:inline">Add Transaction</span>
+          <span class="sm:hidden">Add</span>
         </button>
       </div>
     </header>
 
     <!-- Main Views Area -->
-    <main class="relative pt-16 w-full px-space-xl pb-space-2xl flex-1">
+    <main class="relative pt-16 w-full px-3 sm:px-6 lg:px-space-xl pb-space-2xl flex-1">
       <div class="flex flex-col w-full">
 
         <!-- Interactive View Switcher Bar -->
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-space-md my-space-lg">
-          <div class="inline-flex p-1 bg-surface-container-low rounded-xl gap-1">
-            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all bg-primary text-on-primary shadow-sm" data-tab-target="dashboard" type="button">
+          <div class="inline-flex p-1 bg-surface-container-low rounded-xl gap-1 overflow-x-auto max-w-full no-scrollbar touch-scroll">
+            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all bg-primary text-on-primary shadow-sm whitespace-nowrap flex-shrink-0" data-tab-target="dashboard" type="button">
               <span class="material-symbols-outlined text-[18px]">grid_view</span>
               <span>Dashboard</span>
             </button>
-            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface" data-tab-target="transactions" type="button">
+            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface whitespace-nowrap flex-shrink-0" data-tab-target="transactions" type="button">
               <span class="material-symbols-outlined text-[18px]">receipt_long</span>
               <span>Transactions</span>
             </button>
-            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface" data-tab-target="analytics" type="button">
+            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface whitespace-nowrap flex-shrink-0" data-tab-target="analytics" type="button">
               <span class="material-symbols-outlined text-[18px]">monitoring</span>
               <span>Analytics</span>
             </button>
-            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface" data-tab-target="calendar" type="button">
+            <button class="tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface whitespace-nowrap flex-shrink-0" data-tab-target="calendar" type="button">
               <span class="material-symbols-outlined text-[18px]">calendar_month</span>
               <span>Calendar</span>
             </button>
           </div>
           
           <!-- Live Sync & Quick Filter Strip -->
-          <div class="flex items-center gap-space-sm self-start sm:self-auto">
+          <div class="flex items-center gap-space-sm self-start sm:self-auto flex-wrap">
             <div class="flex items-center gap-space-xs px-space-sm py-1 rounded-full bg-surface-container text-on-surface-variant font-label-sm text-label-sm">
               <span class="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
-              <span>Flask SQLite Live · Synchronized</span>
+              <span>Live · Synchronized</span>
             </div>
             <button class="px-space-sm py-1 rounded-lg bg-surface-container-low text-secondary hover:text-on-surface font-title-sm text-title-sm transition-colors flex items-center gap-1" onclick="App.switchTab('transactions')" type="button">
               <span class="material-symbols-outlined text-[16px]">tune</span>
@@ -250,7 +278,6 @@
             <div class="flex flex-col">
               <div class="flex items-center gap-space-xs">
                 <h1 id="dashboard-greeting-name" class="font-headline-md text-headline-md text-on-surface font-bold">Good evening, Karma</h1>
-                <span class="px-2 py-0.5 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-label-sm text-label-sm font-semibold">Pro Tier</span>
               </div>
               <p class="font-body-md text-body-md text-secondary mt-1">Here is your verified spending and liquidity snapshot for the active cycle.</p>
             </div>
@@ -671,7 +698,7 @@
               </div>
               <div>
                 <span class="font-title-sm text-title-sm font-bold text-on-surface">Automated Ledger Reconciliation</span>
-                <p class="font-body-sm text-body-sm text-secondary">All transactions verified and stored locally in your SQLite database.</p>
+                <p class="font-body-sm text-body-sm text-secondary">All transactions verified and synchronized with your secure database.</p>
               </div>
             </div>
             <div class="flex items-center gap-space-xs">
@@ -1045,18 +1072,6 @@
                 </div>
               </div>
 
-              <!-- Supabase Status Box -->
-              <div class="p-space-md bg-surface-container-low rounded-xl border border-surface-container flex flex-col gap-2">
-                <div class="flex items-center gap-2 text-primary font-bold">
-                  <span class="material-symbols-outlined text-[20px]">database</span>
-                  <span>Database &amp; Storage Architecture</span>
-                </div>
-                <p class="font-body-sm text-body-sm text-secondary">
-                  Currently running on high-speed local <strong>SQLite (.db)</strong> with distinct user tables and bcrypt password hashing. 
-                  Schema and REST API models are 100% PostgreSQL &amp; <strong>Supabase ready</strong>.
-                </p>
-              </div>
-
               <div class="flex items-center gap-space-sm pt-space-xs">
                 <button type="submit" class="px-space-lg py-2.5 bg-primary hover:bg-primary-container text-on-primary rounded-lg font-title-sm text-title-sm font-semibold transition-all shadow-sm">
                   Save Changes
@@ -1076,8 +1091,8 @@
   <!-- ================================================================= -->
   <!-- ADD / EDIT TRANSACTION MODAL                                      -->
   <!-- ================================================================= -->
-  <div id="transaction-modal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
-    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-lg w-full p-space-xl flex flex-col gap-space-md border border-surface-container">
+  <div id="transaction-modal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-lg w-full p-4 sm:p-space-xl flex flex-col gap-space-md border border-surface-container max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-space-xs border-b border-surface-container-low">
         <h2 id="modal-tx-title" class="font-headline-sm text-headline-sm text-on-surface font-bold">Add Transaction</h2>
         <button type="button" class="text-secondary hover:text-on-surface p-1 rounded-lg" onclick="App.closeTransactionModal()">
@@ -1169,8 +1184,8 @@
   <!-- ================================================================= -->
   <!-- DELETE CONFIRMATION MODAL                                         -->
   <!-- ================================================================= -->
-  <div id="delete-modal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
-    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-sm w-full p-space-xl flex flex-col gap-space-md border border-surface-container text-center">
+  <div id="delete-modal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-3 sm:p-4">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-sm w-full p-4 sm:p-space-xl flex flex-col gap-space-md border border-surface-container text-center">
       <div class="w-12 h-12 rounded-full bg-error-container text-error flex items-center justify-center mx-auto">
         <span class="material-symbols-outlined text-[28px]">delete</span>
       </div>
@@ -1192,14 +1207,12 @@
   <!-- ================================================================= -->
   <!-- AUTHENTICATION SCREEN / MODAL (Login & Register)                 -->
   <!-- ================================================================= -->
-  <div id="auth-modal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
-    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-md w-full p-space-xl flex flex-col gap-space-lg border border-surface-container">
+  <div id="auth-modal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-space-xl flex flex-col gap-space-lg border border-surface-container max-h-[92vh] overflow-y-auto">
       
       <!-- Brand & Title -->
       <div class="flex flex-col items-center text-center">
-        <div class="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-on-primary shadow-md mb-2">
-          <span class="material-symbols-outlined text-[28px]">account_balance_wallet</span>
-        </div>
+        <img src="/static/icons/logo.png" alt="SpendWise Logo" class="w-14 h-14 rounded-2xl object-contain shadow-md mb-2">
         <h2 class="font-headline-md text-headline-md text-on-surface font-bold tracking-tight">SpendWise</h2>
         <p class="font-body-sm text-body-sm text-secondary mt-1">Distinct multi-user financial center &amp; ledger</p>
       </div>

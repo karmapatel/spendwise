@@ -40,7 +40,10 @@ const API = {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data.error || `HTTP error ${response.status}`);
+        const err = new Error(data.error || `HTTP error ${response.status}`);
+        err.status = response.status;
+        err.data = data;
+        throw err;
       }
 
       return data;
@@ -49,6 +52,9 @@ const API = {
       throw error;
     }
   },
+
+  // Health Monitoring
+  health: () => API.request('/health'),
 
   // Auth Endpoints
   auth: {

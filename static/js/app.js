@@ -41,6 +41,7 @@ const App = {
     }
 
     this.setupEventListeners();
+    this.setupMonitoringAndPWA();
   },
 
   setupEventListeners() {
@@ -193,14 +194,30 @@ const App = {
     }
   },
 
-  // -------------------------------------------------------------
-  // View Switching
-  // -------------------------------------------------------------
+  toggleMobileSidebar(show) {
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    if (!sidebar || !backdrop) return;
+
+    if (show) {
+      sidebar.classList.remove('-translate-x-full');
+      backdrop.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden', 'lg:overflow-auto');
+    } else {
+      sidebar.classList.add('-translate-x-full');
+      backdrop.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+    }
+  },
+
   switchTab(targetId) {
     const validTabs = ['dashboard', 'transactions', 'analytics', 'calendar', 'categories', 'settings'];
     if (!validTabs.includes(targetId)) return;
 
     this.activeTab = targetId;
+
+    // Auto-close mobile drawer upon selecting any view
+    this.toggleMobileSidebar(false);
 
     // 1. Toggle Tab Container visibility
     validTabs.forEach(id => {
@@ -218,9 +235,9 @@ const App = {
     document.querySelectorAll('.tab-btn').forEach(btn => {
       const target = btn.getAttribute('data-tab-target');
       if (target === targetId) {
-        btn.className = 'tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all bg-primary text-on-primary shadow-sm';
+        btn.className = 'tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all bg-primary text-on-primary shadow-sm whitespace-nowrap flex-shrink-0';
       } else {
-        btn.className = 'tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface';
+        btn.className = 'tab-btn flex items-center gap-space-xs px-space-base py-space-xs rounded-lg font-title-sm text-title-sm transition-all text-secondary hover:bg-surface-container hover:text-on-surface whitespace-nowrap flex-shrink-0';
       }
     });
 
@@ -602,28 +619,50 @@ const App = {
     this.currentEditingId = null;
   },
 
-  async handleTransactionSubmit(e) {
-    e.preventDefault();
+  isSubmittingTx: false,
 
-    const merchant = document.getElementById('tx-merchant').value.strip ? document.getElementById('tx-merchant').value.strip() : document.getElementById('tx-merchant').value.trim();
-    const amount = parseFloat(document.getElementById('tx-amount').value);
-    const type = document.getElementById('tx-type').value;
-    const category = document.getElementById('tx-category').value;
-    const payment_method = document.getElementById('tx-payment-method').value;
-    const date = document.getElementById('tx-date').value;
-    const time = document.getElementById('tx-time').value;
-    const notes = document.getElementById('tx-notes').value;
+  async handleTransactionSubmit(e, retryPayload = null, editingId = null) {
+    if (e && e.preventDefault) e.preventDefault();
 
-    if (!merchant || isNaN(amount) || amount <= 0) {
-      this.showToast('Please enter a valid description and amount', 'error');
-      return;
+    if (this.isSubmittingTx) return;
+
+    let payload = retryPayload;
+    const isEdit = editingId !== null ? true : Boolean(this.currentEditingId);
+    const targetId = editingId !== null ? editingId : this.currentEditingId;
+
+    if (!payload) {
+      const merchantEl = document.getElementById('tx-merchant');
+      const amountEl = document.getElementById('tx-amount');
+      const merchant = merchantEl ? merchantEl.value.trim() : '';
+      const amount = amountEl ? parseFloat(amountEl.value) : NaN;
+      const type = document.getElementById('tx-type') ? document.getElementById('tx-type').value : 'expense';
+      const category = document.getElementById('tx-category') ? document.getElementById('tx-category').value : 'Food & Dining';
+      const payment_method = document.getElementById('tx-payment-method') ? document.getElementById('tx-payment-method').value : 'UPI';
+      const date = document.getElementById('tx-date') ? document.getElementById('tx-date').value : '';
+      const time = document.getElementById('tx-time') ? document.getElementById('tx-time').value : '';
+      const notes = document.getElementById('tx-notes') ? document.getElementById('tx-notes').value : '';
+
+      if (!merchant || isNaN(amount) || amount <= 0) {
+        this.showToast('Please enter a valid description and amount', 'error');
+        return;
+      }
+
+      payload = { merchant, amount, type, category, payment_method, date, time, notes };
     }
 
-    const payload = { merchant, amount, type, category, payment_method, date, time, notes };
+    const submitBtn = document.getElementById('modal-tx-submit-btn');
+    const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
 
     try {
-      if (this.currentEditingId) {
-        await API.transactions.update(this.currentEditingId, payload);
+      this.isSubmittingTx = true;
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+        submitBtn.innerHTML = 'Saving...';
+      }
+
+      if (isEdit && targetId) {
+        await API.transactions.update(targetId, payload);
         this.showToast('Transaction updated successfully!', 'success');
       } else {
         await API.transactions.create(payload);
@@ -633,7 +672,19 @@ const App = {
       this.closeTransactionModal();
       await this.refreshAllViews();
     } catch (err) {
-      this.showToast(err.message || 'Failed to save transaction', 'error');
+      console.error('Transaction submit failed:', err);
+      // Show error with Retry option; backend prevents duplicate insertion
+      this.showRetryToast(
+        err.message || 'Failed to save transaction',
+        () => this.handleTransactionSubmit(null, payload, isEdit ? targetId : null)
+      );
+    } finally {
+      this.isSubmittingTx = false;
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+        submitBtn.innerHTML = originalBtnText;
+      }
     }
   },
 
@@ -674,7 +725,7 @@ const App = {
   },
 
   // -------------------------------------------------------------
-  // Toast Notifications
+  // Toast Notifications & Retry Banners
   // -------------------------------------------------------------
   showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
@@ -684,7 +735,7 @@ const App = {
     const isSuccess = type === 'success';
     const isError = type === 'error';
 
-    toast.className = `toast-msg flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg font-title-sm text-title-sm ${
+    toast.className = `toast-msg flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg font-title-sm text-title-sm transition-all ${
       isSuccess ? 'bg-primary text-on-primary' : isError ? 'bg-error text-on-error' : 'bg-surface-container-lowest text-on-surface shadow-md border border-surface-container'
     }`;
 
@@ -696,11 +747,178 @@ const App = {
 
     container.appendChild(toast);
     setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateY(-8px)';
-      toast.style.transition = 'all 0.25s ease-out';
-      setTimeout(() => toast.remove(), 250);
+      if (toast.parentNode) {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-8px)';
+        toast.style.transition = 'all 0.25s ease-out';
+        setTimeout(() => toast.remove(), 250);
+      }
     }, 3200);
+  },
+
+  showRetryToast(message, onRetry) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-msg flex items-center justify-between gap-3 px-4 py-3 rounded-xl shadow-xl font-title-sm text-title-sm bg-error text-on-error border border-error-container/30 transition-all';
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'flex items-center gap-2';
+    contentDiv.innerHTML = `
+      <span class="material-symbols-outlined text-[20px]">error</span>
+      <span>${message}</span>
+    `;
+
+    const retryBtn = document.createElement('button');
+    retryBtn.type = 'button';
+    retryBtn.className = 'px-3 py-1 bg-white text-error font-bold rounded-lg hover:bg-white/90 active:scale-95 transition-all text-xs flex items-center gap-1 shadow-sm whitespace-nowrap';
+    retryBtn.innerHTML = `
+      <span class="material-symbols-outlined text-[14px]">refresh</span>
+      <span>Retry</span>
+    `;
+    retryBtn.addEventListener('click', async () => {
+      toast.remove();
+      if (typeof onRetry === 'function') {
+        await onRetry();
+      }
+    });
+
+    toast.appendChild(contentDiv);
+    toast.appendChild(retryBtn);
+    container.appendChild(toast);
+
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-8px)';
+        toast.style.transition = 'all 0.25s ease-out';
+        setTimeout(() => toast.remove(), 250);
+      }
+    }, 8000);
+  },
+
+  // -------------------------------------------------------------
+  // Automatic Backend & Connection Monitoring
+  // -------------------------------------------------------------
+  lastHealthCheckTime: 0,
+  healthCheckCooldownMs: 5000,
+
+  setConnectionStatus(status) {
+    const pill = document.getElementById('connection-status-pill');
+    const dot = document.getElementById('connection-status-dot');
+    const text = document.getElementById('connection-status-text');
+    if (!pill || !dot || !text) return;
+
+    pill.className = 'flex items-center gap-1.5 px-space-sm py-1 rounded-full text-label-sm font-label-sm font-semibold border transition-all';
+    dot.className = 'w-2 h-2 rounded-full transition-colors';
+
+    switch (status) {
+      case 'connected':
+        pill.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-200/70');
+        dot.classList.add('bg-emerald-500');
+        text.textContent = 'Connected';
+        pill.title = 'Backend and database connected';
+        break;
+      case 'offline':
+        pill.classList.add('bg-amber-50', 'text-amber-700', 'border-amber-200/70');
+        dot.classList.add('bg-amber-500');
+        text.textContent = 'Offline';
+        pill.title = 'No internet connection';
+        break;
+      case 'server_unavailable':
+        pill.classList.add('bg-rose-50', 'text-rose-700', 'border-rose-200/70');
+        dot.classList.add('bg-rose-500');
+        text.textContent = 'Server unavailable';
+        pill.title = 'Backend server unreachable';
+        break;
+      case 'database_unavailable':
+        pill.classList.add('bg-rose-50', 'text-rose-700', 'border-rose-200/70');
+        dot.classList.add('bg-rose-500');
+        text.textContent = 'Database unavailable';
+        pill.title = 'Backend reached but database check failed';
+        break;
+      default:
+        pill.classList.add('bg-surface-container-low', 'text-on-surface-variant', 'border-surface-container');
+        dot.classList.add('bg-secondary');
+        text.textContent = 'Connecting...';
+    }
+  },
+
+  async checkHealth() {
+    if (!navigator.onLine) {
+      this.setConnectionStatus('offline');
+      return;
+    }
+
+    try {
+      const res = await fetch('/health', {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store'
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.database === 'ok') {
+        this.setConnectionStatus('connected');
+      } else if (data.database === 'error') {
+        this.setConnectionStatus('database_unavailable');
+      } else {
+        this.setConnectionStatus('server_unavailable');
+      }
+    } catch (err) {
+      if (!navigator.onLine) {
+        this.setConnectionStatus('offline');
+      } else {
+        this.setConnectionStatus('server_unavailable');
+      }
+    } finally {
+      this.lastHealthCheckTime = Date.now();
+    }
+  },
+
+  triggerHealthCheckThrottled() {
+    const now = Date.now();
+    if (now - this.lastHealthCheckTime > this.healthCheckCooldownMs) {
+      this.checkHealth();
+    }
+  },
+
+  setupMonitoringAndPWA() {
+    // 1. PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+          .then((reg) => console.log('[PWA] Service Worker registered with scope:', reg.scope))
+          .catch((err) => console.error('[PWA] Service Worker registration failed:', err));
+      });
+    }
+
+    // 2. Automatic check when the app opens
+    this.checkHealth();
+
+    // 3. Automatic check when app returns to foreground (visibility change / window focus)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        this.triggerHealthCheckThrottled();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      this.triggerHealthCheckThrottled();
+    });
+
+    // 4. Automatic check when internet comes back online / goes offline
+    window.addEventListener('online', () => {
+      this.checkHealth();
+      this.showToast('Internet connection restored', 'info');
+    });
+
+    window.addEventListener('offline', () => {
+      this.setConnectionStatus('offline');
+      this.showToast('You are currently offline', 'error');
+    });
   }
 };
 
