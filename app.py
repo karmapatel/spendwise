@@ -21,7 +21,7 @@ from flask import Flask, render_template, request, jsonify, session, Response, s
 from flask_cors import CORS
 from sqlalchemy import text
 from config import Config
-from models import db, bcrypt, User, Transaction, DEFAULT_CATEGORIES
+from models import db, bcrypt, User, Transaction, DEFAULT_CATEGORIES, ist_now, IST
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -71,7 +71,7 @@ def health_check():
         'backend': 'ok',
         'database': db_status,
         'error': error_msg,
-        'timestamp': datetime.utcnow().isoformat()
+        'timestamp': datetime.now(IST).isoformat()
     }), status_code
 
 # -------------------------------------------------------------
@@ -232,8 +232,8 @@ def add_transaction():
     tx_type = data.get('type', 'expense').lower()
     category = data.get('category', 'Others & Misc')
     payment_method = data.get('payment_method', 'UPI')
-    tx_date = data.get('date') or datetime.utcnow().strftime('%Y-%m-%d')
-    tx_time = data.get('time') or datetime.utcnow().strftime('%H:%M')
+    tx_date = data.get('date') or datetime.now(IST).strftime('%Y-%m-%d')
+    tx_time = data.get('time') or datetime.now(IST).strftime('%H:%M')
     notes = data.get('notes', '')
 
     if not merchant:
@@ -250,7 +250,7 @@ def add_transaction():
         tx_type = 'expense'
 
     # Deduplication Guard: Check if an identical transaction was recorded in the last 15 seconds
-    cutoff_time = datetime.utcnow() - timedelta(seconds=15)
+    cutoff_time = ist_now() - timedelta(seconds=15)
     recent_dup = Transaction.query.filter(
         Transaction.user_id == user.id,
         Transaction.merchant == merchant,
@@ -353,7 +353,7 @@ def get_period_stats():
         return jsonify({'error': 'Unauthorized'}), 401
 
     # Date range filters (defaults to current month if not specified)
-    today = date.today()
+    today = datetime.now(IST).date()
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
 
@@ -441,7 +441,8 @@ def get_period_stats():
     # Zero spend days in period
     zero_spend_days = 0
     curr = dt_start
-    while curr <= dt_end and curr <= datetime.utcnow():
+    curr_today_ist = datetime.now(IST).date()
+    while curr.date() <= dt_end.date() and curr.date() <= curr_today_ist:
         d_str = curr.strftime('%Y-%m-%d')
         if daily_outflows.get(d_str, 0.0) == 0.0:
             zero_spend_days += 1
@@ -532,7 +533,7 @@ def export_csv():
         ])
 
     csv_data = output.getvalue()
-    filename = f"SpendWise_Transactions_{datetime.utcnow().strftime('%Y%m%d')}.csv"
+    filename = f"SpendWise_Transactions_{datetime.now(IST).strftime('%Y%m%d')}.csv"
     return Response(
         csv_data,
         mimetype='text/csv',
@@ -544,13 +545,6 @@ def export_csv():
 # -------------------------------------------------------------
 with app.app_context():
     db.create_all()
-    # Ensure default demo user exists for quick one-click testing (starts with zero transactions)
-    demo_email = 'karma@spendwise.internal'
-    if not User.query.filter_by(email=demo_email).first():
-        demo_user = User(name='Karma Patel', email=demo_email, monthly_budget=35000.0, currency='₹')
-        demo_user.set_password('spendwise123')
-        db.session.add(demo_user)
-        db.session.commit()
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

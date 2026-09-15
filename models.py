@@ -13,9 +13,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://gnu.org>.
 
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+
+# Indian Standard Time (IST, UTC+5:30)
+IST = timezone(timedelta(hours=5, minutes=30))
+
+def ist_now():
+    """Return current naive datetime in Indian Standard Time (IST)."""
+    return datetime.now(IST).replace(tzinfo=None)
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -42,7 +49,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     monthly_budget = db.Column(db.Float, default=35000.0)
     currency = db.Column(db.String(10), default='₹')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=ist_now)
     
     transactions = db.relationship('Transaction', backref='user', lazy=True, cascade='all, delete-orphan')
 
@@ -75,7 +82,7 @@ class Transaction(db.Model):
     category = db.Column(db.String(100), nullable=False, index=True)
     payment_method = db.Column(db.String(50), nullable=False, default='UPI')
     notes = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=ist_now)
 
     def to_dict(self):
         return {

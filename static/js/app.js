@@ -99,16 +99,6 @@ const App = {
       });
     }
 
-    // Demo Account button
-    const demoBtn = document.getElementById('btn-demo-login');
-    if (demoBtn) {
-      demoBtn.addEventListener('click', () => {
-        document.getElementById('login-email').value = 'karma@spendwise.internal';
-        document.getElementById('login-password').value = 'spendwise123';
-        Auth.handleLogin('karma@spendwise.internal', 'spendwise123');
-      });
-    }
-
     // Search input debounce
     const searchInput = document.getElementById('ledger-search-input');
     if (searchInput) {
@@ -281,8 +271,8 @@ const App = {
   async refreshDashboardView() {
     try {
       const now = new Date();
-      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+      const start = FilterManager.formatDate(new Date(now.getFullYear(), now.getMonth(), 1));
+      const end = FilterManager.formatDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
       const stats = await API.transactions.stats({ start_date: start, end_date: end });
       const recentTxs = await API.transactions.list({ start_date: start, end_date: end });
