@@ -18,13 +18,26 @@ import csv
 from datetime import datetime, date, timedelta
 import calendar
 from flask import Flask, render_template, request, jsonify, session, Response, send_from_directory
+from flask.sessions import SecureCookieSessionInterface
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_cors import CORS
 from sqlalchemy import text
 from config import Config
 from models import db, bcrypt, User, Transaction, DEFAULT_CATEGORIES, ist_now, IST
 
+class PwaSessionInterface(SecureCookieSessionInterface):
+    """Dynamic session interface: sets Secure on cookies over HTTPS/reverse proxies, allows plain HTTP in local dev."""
+    def get_cookie_secure(self, app):
+        val = app.config.get('SESSION_COOKIE_SECURE')
+        if val is not None:
+            return val
+        return request.is_secure
+
 app = Flask(__name__)
 app.config.from_object(Config)
+app.session_interface = PwaSessionInterface()
+# Enable reverse proxy header awareness (Vercel, Render, Nginx, Cloudflare)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 CORS(app)
 db.init_app(app)
@@ -106,6 +119,7 @@ def register():
     db.session.add(user)
     db.session.commit()
 
+    session.permanent = True
     session['user_id'] = user.id
     return jsonify({
         'status': 'success',
@@ -126,6 +140,7 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({'error': 'Invalid email or password.'}), 401
 
+    session.permanent = True
     session['user_id'] = user.id
     return jsonify({
         'status': 'success',
@@ -135,7 +150,7 @@ def login():
 
 @app.route('/api/auth/logout', methods=['POST'])
 def logout():
-    session.pop('user_id', None)
+    session.clear()
     return jsonify({'status': 'success', 'message': 'Logged out successfully.'})
 
 @app.route('/api/auth/me', methods=['GET'])

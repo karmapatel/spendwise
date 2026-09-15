@@ -14,6 +14,7 @@
 # along with this program.  If not, see <https://gnu.org>.
 
 import os
+from datetime import timedelta
 from dotenv import load_dotenv
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -32,6 +33,13 @@ def get_database_uri():
     
     return raw_uri
 
+def get_session_cookie_secure():
+    raw = os.environ.get('SESSION_COOKIE_SECURE')
+    if raw is not None and raw.strip() != '':
+        return raw.strip().lower() in ('true', '1')
+    # Default to None so PwaSessionInterface can dynamically secure HTTPS requests
+    return None
+
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', 'spendwise_super_secret_key_2026')
     SQLALCHEMY_DATABASE_URI = get_database_uri()
@@ -44,9 +52,12 @@ class Config:
         "pool_recycle": 300,
     }
 
-    # Session cookie configuration
+    # Session cookie configuration (Persistent 30-day session)
+    SESSION_COOKIE_NAME = 'spendwise_session'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
+    PERMANENT_SESSION_LIFETIME = timedelta(days=30)
+    SESSION_COOKIE_SECURE = get_session_cookie_secure()
 
     # Supabase Client configuration
     SUPABASE_URL = os.environ.get('SUPABASE_URL', '').strip() or None

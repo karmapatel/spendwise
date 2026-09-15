@@ -24,6 +24,7 @@ const API = {
     };
 
     const config = {
+      credentials: 'same-origin',
       ...options,
       headers: {
         ...defaultHeaders,
