@@ -25,6 +25,10 @@ const App = {
   currentFilteredTransactions: [],
 
   async init() {
+    // 1. Immediately bind all DOM listeners synchronously on startup
+    this.setupEventListeners();
+
+    // 2. Initialize filter and calendar controllers
     FilterManager.init();
     CalendarController.init();
 
@@ -34,41 +38,50 @@ const App = {
       this.refreshAnalyticsView();
     });
 
-    // Wire auth check
-    const isAuthed = await Auth.checkAuth();
-    if (isAuthed) {
-      await this.refreshAllViews();
-    }
-
-    this.setupEventListeners();
+    // 3. Start PWA service worker and health monitoring asynchronously in background
     this.setupMonitoringAndPWA();
+
+    // 4. Asynchronously restore session and load views in background without blocking UI
+    try {
+      const isAuthed = await Auth.checkAuth();
+      if (isAuthed) {
+        this.refreshAllViews();
+      }
+    } catch (err) {
+      console.error('[App] Startup auth error:', err);
+    }
   },
 
   setupEventListeners() {
-    // Top Bar Tab Switchers
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const target = btn.getAttribute('data-tab-target');
-        if (target) this.switchTab(target);
-      });
-    });
-
-    // Sidebar Navigation Links
-    document.querySelectorAll('aside a[data-path]').forEach(link => {
-      link.addEventListener('click', (e) => {
+    // Fast document-level event delegation: guarantees instant navbar navigation response
+    // with zero startup delay or race conditions with network/auth checks
+    document.addEventListener('click', (e) => {
+      const tabBtn = e.target.closest('.tab-btn');
+      if (tabBtn) {
         e.preventDefault();
-        const path = link.getAttribute('data-path');
+        const target = tabBtn.getAttribute('data-tab-target');
+        if (target) this.switchTab(target);
+        return;
+      }
+
+      const navLink = e.target.closest('aside a[data-path]');
+      if (navLink) {
+        e.preventDefault();
+        const path = navLink.getAttribute('data-path');
         if (path === 'logout') {
           Auth.handleLogout();
         } else if (path) {
           this.switchTab(path);
         }
-      });
-    });
+        return;
+      }
 
-    // Global Add Transaction buttons
-    document.querySelectorAll('.btn-open-add-modal').forEach(btn => {
-      btn.addEventListener('click', () => this.openAddTransactionModal());
+      const addBtn = e.target.closest('.btn-open-add-modal');
+      if (addBtn) {
+        e.preventDefault();
+        this.openAddTransactionModal();
+        return;
+      }
     });
 
     // Transaction form submission
@@ -876,17 +889,23 @@ const App = {
   },
 
   setupMonitoringAndPWA() {
-    // 1. PWA Service Worker Registration
+    // 1. PWA Service Worker Registration - independent and non-blocking
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
+      const registerSW = () => {
         navigator.serviceWorker.register('/sw.js', { scope: '/' })
           .then((reg) => console.log('[PWA] Service Worker registered with scope:', reg.scope))
           .catch((err) => console.error('[PWA] Service Worker registration failed:', err));
-      });
+      };
+
+      if (document.readyState === 'complete') {
+        registerSW();
+      } else {
+        window.addEventListener('load', registerSW);
+      }
     }
 
-    // 2. Automatic check when the app opens
-    this.checkHealth();
+    // 2. Automatic check when app opens - runs asynchronously in background, never blocks UI
+    Promise.resolve().then(() => this.checkHealth());
 
     // 3. Automatic check when app returns to foreground (visibility change / window focus)
     document.addEventListener('visibilitychange', () => {
