@@ -19,21 +19,54 @@
 const Auth = {
   currentUser: null,
 
-  async checkAuth() {
+  initFromCache() {
     try {
-      const res = await API.auth.me();
-      if (res.authenticated && res.user) {
-        this.currentUser = res.user;
+      const cached = localStorage.getItem('spendwise_cached_user');
+      if (cached) {
+        this.currentUser = JSON.parse(cached);
         this.updateUserUI();
         this.hideAuthModal();
         return true;
       }
     } catch (e) {
-      this.currentUser = null;
+      console.warn('Failed to parse cached user:', e);
+    }
+    return false;
+  },
+
+  setCurrentUser(user) {
+    this.currentUser = user;
+    if (user) {
+      try {
+        localStorage.setItem('spendwise_cached_user', JSON.stringify(user));
+      } catch (e) {}
+      this.updateUserUI();
+      this.hideAuthModal();
+    } else {
+      try {
+        localStorage.removeItem('spendwise_cached_user');
+        localStorage.removeItem('spendwise_cached_dashboard');
+      } catch (e) {}
+      this.showAuthModal();
+    }
+  },
+
+  async checkAuth() {
+    try {
+      const res = await API.auth.me();
+      if (res.authenticated && res.user) {
+        this.setCurrentUser(res.user);
+        return true;
+      }
+    } catch (e) {
+      // Ignore network errors if already populated from cache
     }
 
-    this.showAuthModal();
-    return false;
+    if (!this.currentUser) {
+      this.setCurrentUser(null);
+      return false;
+    }
+    return true;
   },
 
   updateUserUI() {
@@ -89,11 +122,9 @@ const Auth = {
 
     try {
       const res = await API.auth.login(email, password);
-      this.currentUser = res.user;
-      this.updateUserUI();
-      this.hideAuthModal();
+      this.setCurrentUser(res.user);
       App.showToast(`Welcome back, ${this.currentUser.name}!`, 'success');
-      App.refreshAllViews();
+      App.bootstrapData();
     } catch (err) {
       if (errBox) {
         errBox.textContent = err.message || 'Login failed. Please check credentials.';
@@ -108,11 +139,9 @@ const Auth = {
 
     try {
       const res = await API.auth.register(name, email, password);
-      this.currentUser = res.user;
-      this.updateUserUI();
-      this.hideAuthModal();
+      this.setCurrentUser(res.user);
       App.showToast(`Account created! Welcome, ${this.currentUser.name}.`, 'success');
-      App.refreshAllViews();
+      App.bootstrapData();
     } catch (err) {
       if (errBox) {
         errBox.textContent = err.message || 'Registration failed.';
@@ -124,12 +153,12 @@ const Auth = {
   async handleLogout() {
     try {
       await API.auth.logout();
-      this.currentUser = null;
-      App.showToast('Logged out successfully.', 'info');
-      this.showAuthModal();
-      App.refreshAllViews();
     } catch (err) {
       console.error('Logout error:', err);
+    } finally {
+      this.setCurrentUser(null);
+      App.showToast('Logged out successfully.', 'info');
+      App.clearDashboardUI();
     }
   }
 };

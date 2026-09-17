@@ -367,36 +367,25 @@ def delete_transaction(tx_id):
     return jsonify({'status': 'success', 'message': 'Transaction deleted.'})
 
 # -------------------------------------------------------------
-# Analytics & Period Stats API
-# -------------------------------------------------------------
-@app.route('/api/transactions/stats', methods=['GET'])
-def get_period_stats():
-    user = get_current_user()
-    if not user:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    # Date range filters (defaults to current month if not specified)
+# Helper: Compute aggregated financial stats for a given user and date range
+def calculate_user_stats(user, start_date=None, end_date=None):
     today = datetime.now(IST).date()
-    start_date = request.args.get('start_date')
-    end_date = request.args.get('end_date')
-
     if not start_date or not end_date:
-        # Default to current month
         start_date = today.replace(day=1).strftime('%Y-%m-%d')
         last_day = calendar.monthrange(today.year, today.month)[1]
         end_date = today.replace(day=last_day).strftime('%Y-%m-%d')
 
-    # All-time calculations for overall balance
-    all_time_income = db.session.query(db.func.sum(Transaction.amount)).filter(
-        Transaction.user_id == user.id,
-        Transaction.type == 'income'
-    ).scalar() or 0.0
-
-    all_time_expense = db.session.query(db.func.sum(Transaction.amount)).filter(
-        Transaction.user_id == user.id,
-        Transaction.type == 'expense'
-    ).scalar() or 0.0
-
+    # All-time calculations in 1 single grouped query
+    type_totals = dict(
+        db.session.query(
+            Transaction.type,
+            db.func.sum(Transaction.amount)
+        ).filter(
+            Transaction.user_id == user.id
+        ).group_by(Transaction.type).all()
+    )
+    all_time_income = float(type_totals.get('income') or 0.0)
+    all_time_expense = float(type_totals.get('expense') or 0.0)
     current_balance = all_time_income - all_time_expense
 
     # Period-specific calculations
@@ -476,7 +465,7 @@ def get_period_stats():
     remaining_cap = max(0.0, monthly_budget - period_expense)
     budget_usage_pct = round((period_expense / monthly_budget * 100), 1) if monthly_budget > 0 else 0.0
 
-    return jsonify({
+    return {
         'currency': user.currency,
         'current_balance': current_balance,
         'all_time_income': all_time_income,
@@ -498,7 +487,52 @@ def get_period_stats():
         'daily_counts': daily_counts,
         'start_date': start_date,
         'end_date': end_date
+    }
+
+# -------------------------------------------------------------
+# Bootstrap API (Single Unified Roundtrip for Instant App Startup)
+# -------------------------------------------------------------
+@app.route('/api/bootstrap', methods=['GET'])
+def bootstrap():
+    user = get_current_user()
+    if not user:
+        return jsonify({'authenticated': False}), 200
+
+    today = datetime.now(IST).date()
+    start_date = today.replace(day=1).strftime('%Y-%m-%d')
+    last_day = calendar.monthrange(today.year, today.month)[1]
+    end_date = today.replace(day=last_day).strftime('%Y-%m-%d')
+
+    stats = calculate_user_stats(user, start_date, end_date)
+
+    recent_txs = Transaction.query.filter(
+        Transaction.user_id == user.id,
+        Transaction.date >= start_date,
+        Transaction.date <= end_date
+    ).order_by(Transaction.date.desc(), Transaction.time.desc(), Transaction.id.desc()).limit(5).all()
+
+    return jsonify({
+        'authenticated': True,
+        'user': user.to_dict(),
+        'dashboard': {
+            'stats': stats,
+            'recent_transactions': [t.to_dict() for t in recent_txs]
+        }
     })
+
+# -------------------------------------------------------------
+# Analytics & Period Stats API
+# -------------------------------------------------------------
+@app.route('/api/transactions/stats', methods=['GET'])
+def get_period_stats():
+    user = get_current_user()
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    start_date = request.args.get('start_date')
+    end_date = request.args.get('end_date')
+    stats = calculate_user_stats(user, start_date, end_date)
+    return jsonify(stats)
 
 # -------------------------------------------------------------
 # CSV Export Endpoint

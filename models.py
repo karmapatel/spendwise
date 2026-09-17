@@ -71,6 +71,9 @@ class User(db.Model):
 
 class Transaction(db.Model):
     __tablename__ = 'transactions'
+    __table_args__ = (
+        db.Index('ix_transactions_user_date_time', 'user_id', 'date', 'time'),
+    )
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='CASCADE'), nullable=False, index=True)

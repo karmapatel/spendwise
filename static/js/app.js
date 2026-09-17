@@ -32,24 +32,21 @@ const App = {
     FilterManager.init();
     CalendarController.init();
 
-    // Setup filter listeners
+    // Setup filter listeners (refresh active view only)
     FilterManager.onChange(() => {
-      this.refreshTransactionsView();
-      this.refreshAnalyticsView();
+      if (this.activeTab === 'transactions') this.refreshTransactionsView();
+      else if (this.activeTab === 'analytics') this.refreshAnalyticsView();
     });
 
-    // 3. Start PWA service worker and health monitoring asynchronously in background
+    // 3. Instant SWR Render: Restore user & dashboard UI in 0ms from localStorage cache
+    Auth.initFromCache();
+    this.renderDashboardFromCache();
+
+    // 4. Start PWA service worker and health monitoring asynchronously in background
     this.setupMonitoringAndPWA();
 
-    // 4. Asynchronously restore session and load views in background without blocking UI
-    try {
-      const isAuthed = await Auth.checkAuth();
-      if (isAuthed) {
-        this.refreshAllViews();
-      }
-    } catch (err) {
-      console.error('[App] Startup auth error:', err);
-    }
+    // 5. Fast consolidated bootstrap: single roundtrip for auth check + live dashboard sync
+    await this.bootstrapData();
   },
 
   setupEventListeners() {
@@ -269,16 +266,113 @@ const App = {
   },
 
   // -------------------------------------------------------------
-  // Data Refresh Handlers
+  // Data Refresh & SWR Cache Handlers
   // -------------------------------------------------------------
+  applyDashboardData(data) {
+    if (!data || !data.stats) return;
+    const stats = data.stats;
+    const recentTxs = data.recent_transactions || [];
+    const curr = stats.currency || (Auth.currentUser && Auth.currentUser.currency) || '₹';
+
+    // Update 4 bento metric cards
+    const balanceEl = document.getElementById('dash-current-balance');
+    const incomeEl = document.getElementById('dash-month-income');
+    const expenseEl = document.getElementById('dash-month-expense');
+    const remainingEl = document.getElementById('dash-remaining-budget');
+    const remainingCapSub = document.getElementById('dash-remaining-cap-sub');
+
+    if (balanceEl) balanceEl.textContent = `${curr}${Number(stats.current_balance || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    if (incomeEl) incomeEl.textContent = `${curr}${Number(stats.period_income || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    if (expenseEl) expenseEl.textContent = `${curr}${Number(stats.period_expense || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    if (remainingEl) remainingEl.textContent = `${curr}${Number(stats.remaining_cap || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    if (remainingCapSub) remainingCapSub.textContent = `${stats.budget_usage_pct || 0}% used`;
+
+    // Update center of donut chart
+    const donutTotalEl = document.getElementById('dash-donut-total');
+    if (donutTotalEl) donutTotalEl.textContent = `${curr}${Number(stats.period_expense || 0).toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
+
+    // Render Donut Chart & Legend
+    if (typeof Charts !== 'undefined' && Charts.renderCategoryDonut) {
+      Charts.renderCategoryDonut('dash-donut-svg', 'dash-donut-legend', stats.category_breakdown || [], stats.period_expense || 0, curr, false);
+    }
+
+    // Render Recent Transactions Table
+    this.renderRecentTransactionsTable(recentTxs.slice(0, 5), curr);
+  },
+
+  renderDashboardFromCache() {
+    try {
+      const cached = localStorage.getItem('spendwise_cached_dashboard');
+      if (cached) {
+        const data = JSON.parse(cached);
+        this.applyDashboardData(data);
+        return true;
+      }
+    } catch (e) {
+      console.warn('Failed to parse cached dashboard:', e);
+    }
+    return false;
+  },
+
+  clearDashboardUI() {
+    try {
+      localStorage.removeItem('spendwise_cached_dashboard');
+    } catch (e) {}
+    const defaultStats = {
+      current_balance: 0,
+      period_income: 0,
+      period_expense: 0,
+      remaining_cap: 0,
+      budget_usage_pct: 0,
+      category_breakdown: []
+    };
+    this.applyDashboardData({ stats: defaultStats, recent_transactions: [] });
+  },
+
+  async bootstrapData() {
+    try {
+      const res = await API.bootstrap();
+      if (res && res.authenticated && res.user) {
+        Auth.setCurrentUser(res.user);
+        if (res.dashboard) {
+          this.applyDashboardData(res.dashboard);
+          try {
+            localStorage.setItem('spendwise_cached_dashboard', JSON.stringify(res.dashboard));
+          } catch (e) {}
+        }
+        this.setConnectionStatus('connected');
+        this.lastHealthCheckTime = Date.now();
+        return true;
+      } else {
+        Auth.setCurrentUser(null);
+        return false;
+      }
+    } catch (err) {
+      console.error('[App] Bootstrap error:', err);
+      if (!Auth.currentUser) {
+        Auth.showAuthModal();
+      }
+      return false;
+    }
+  },
+
   async refreshAllViews() {
     if (!Auth.currentUser) return;
-    await Promise.all([
-      this.refreshDashboardView(),
-      this.refreshTransactionsView(),
-      this.refreshAnalyticsView(),
-      CalendarController.loadMonthData()
-    ]);
+    // Always refresh active view immediately
+    if (this.activeTab === 'dashboard') {
+      await this.refreshDashboardView();
+    } else if (this.activeTab === 'transactions') {
+      await this.refreshTransactionsView();
+    } else if (this.activeTab === 'analytics') {
+      await this.refreshAnalyticsView();
+    } else if (this.activeTab === 'calendar') {
+      await CalendarController.loadMonthData();
+    }
+
+    // Keep dashboard metrics fresh in background if another tab is active
+    if (this.activeTab !== 'dashboard') {
+      this.refreshDashboardView().catch(() => {});
+    }
   },
 
   async refreshDashboardView() {
@@ -287,33 +381,19 @@ const App = {
       const start = FilterManager.formatDate(new Date(now.getFullYear(), now.getMonth(), 1));
       const end = FilterManager.formatDate(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
-      const stats = await API.transactions.stats({ start_date: start, end_date: end });
-      const recentTxs = await API.transactions.list({ start_date: start, end_date: end });
+      const [stats, recentTxs] = await Promise.all([
+        API.transactions.stats({ start_date: start, end_date: end }),
+        API.transactions.list({ start_date: start, end_date: end })
+      ]);
 
-      const curr = stats.currency || '₹';
-
-      // Update 4 bento metric cards
-      const balanceEl = document.getElementById('dash-current-balance');
-      const incomeEl = document.getElementById('dash-month-income');
-      const expenseEl = document.getElementById('dash-month-expense');
-      const remainingEl = document.getElementById('dash-remaining-budget');
-      const remainingCapSub = document.getElementById('dash-remaining-cap-sub');
-
-      if (balanceEl) balanceEl.textContent = `${curr}${stats.current_balance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-      if (incomeEl) incomeEl.textContent = `${curr}${stats.period_income.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-      if (expenseEl) expenseEl.textContent = `${curr}${stats.period_expense.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-      if (remainingEl) remainingEl.textContent = `${curr}${stats.remaining_cap.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-      if (remainingCapSub) remainingCapSub.textContent = `${stats.budget_usage_pct}% used`;
-
-      // Update center of donut chart
-      const donutTotalEl = document.getElementById('dash-donut-total');
-      if (donutTotalEl) donutTotalEl.textContent = `${curr}${stats.period_expense.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
-
-      // Render Donut Chart & Legend
-      Charts.renderCategoryDonut('dash-donut-svg', 'dash-donut-legend', stats.category_breakdown, stats.period_expense, curr, false);
-
-      // Render Recent Transactions Table
-      this.renderRecentTransactionsTable(recentTxs.slice(0, 5), curr);
+      const dashboardData = {
+        stats: stats,
+        recent_transactions: recentTxs
+      };
+      this.applyDashboardData(dashboardData);
+      try {
+        localStorage.setItem('spendwise_cached_dashboard', JSON.stringify(dashboardData));
+      } catch (e) {}
     } catch (err) {
       console.error('Error refreshing dashboard:', err);
     }
@@ -904,8 +984,12 @@ const App = {
       }
     }
 
-    // 2. Automatic check when app opens - runs asynchronously in background, never blocks UI
-    Promise.resolve().then(() => this.checkHealth());
+    // 2. Automatic check when app opens - deferred so it does not compete with bootstrap data query
+    setTimeout(() => {
+      if (!this.lastHealthCheckTime) {
+        this.checkHealth();
+      }
+    }, 2500);
 
     // 3. Automatic check when app returns to foreground (visibility change / window focus)
     document.addEventListener('visibilitychange', () => {

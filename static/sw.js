@@ -16,7 +16,7 @@
  */
 
 // SpendWise Service Worker
-const CACHE_NAME = 'spendwise-static-v2';
+const CACHE_NAME = 'spendwise-static-v3';
 
 // Safe static assets only - NEVER cache private financial or user data
 const STATIC_ASSETS = [
@@ -78,18 +78,23 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Navigation request for root / HTML: Network first, fall back to cached shell
+  // 2. Navigation request for root / HTML: Instant cache-first with background network revalidation
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => caches.match(event.request).then((res) => res || caches.match('/')))
+      caches.match(event.request).then((cachedResponse) => {
+        const fetchPromise = fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse && networkResponse.status === 200) {
+              const clone = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            }
+            return networkResponse;
+          })
+          .catch(() => caches.match(event.request).then((res) => res || caches.match('/')));
+
+        // If cached HTML shell exists, serve instantly (0ms), otherwise await network
+        return cachedResponse || fetchPromise;
+      })
     );
     return;
   }

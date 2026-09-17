@@ -54,6 +54,9 @@ const API = {
     }
   },
 
+  // Fast Consolidated Bootstrap (Auth + User + Dashboard Stats + Recent Transactions in 1 roundtrip)
+  bootstrap: () => API.request('/api/bootstrap'),
+
   // Health Monitoring
   health: () => API.request('/health'),
 
