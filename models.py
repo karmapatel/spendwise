@@ -28,15 +28,17 @@ db = SQLAlchemy()
 bcrypt = Bcrypt()
 
 DEFAULT_CATEGORIES = [
-    {"name": "Food & Dining", "icon": "restaurant", "color": "#00685f", "type": "expense"},
+    {"name": "Food & Drinks", "icon": "restaurant", "color": "#00685f", "type": "expense"},
     {"name": "Bills & Utilities", "icon": "wifi", "color": "#17684e", "type": "expense"},
     {"name": "Shopping", "icon": "shopping_bag", "color": "#008378", "type": "expense"},
     {"name": "Transport", "icon": "directions_car", "color": "#565e74", "type": "expense"},
     {"name": "Entertainment", "icon": "movie", "color": "#378166", "type": "expense"},
     {"name": "Health & Fitness", "icon": "fitness_center", "color": "#6bd8cb", "type": "expense"},
     {"name": "Salary & Income", "icon": "payments", "color": "#00685f", "type": "income"},
+    {"name": "Income", "icon": "payments", "color": "#00685f", "type": "income"},
     {"name": "Freelance", "icon": "work", "color": "#17684e", "type": "income"},
     {"name": "Investment", "icon": "trending_up", "color": "#008378", "type": "income"},
+    {"name": "Misc.", "icon": "more_horiz", "color": "#bec6e0", "type": "income"},
     {"name": "Others & Misc", "icon": "more_horiz", "color": "#bec6e0", "type": "expense"}
 ]
 

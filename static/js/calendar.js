@@ -96,7 +96,6 @@ const CalendarController = {
     const dailyAvgEl = document.getElementById('cal-daily-avg');
     const peakAmountEl = document.getElementById('cal-peak-amount');
     const peakDateEl = document.getElementById('cal-peak-date');
-    const zeroDaysEl = document.getElementById('cal-zero-days');
 
     if (spentEl) spentEl.textContent = `${curr}${stats.period_expense.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
     if (budgetEl) budgetEl.textContent = `/ ${curr}${stats.monthly_budget.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`;
@@ -115,7 +114,6 @@ const CalendarController = {
         peakDateEl.textContent = 'None';
       }
     }
-    if (zeroDaysEl) zeroDaysEl.textContent = `${stats.zero_spend_days} Day${stats.zero_spend_days === 1 ? '' : 's'}`;
   },
 
   renderCalendarGrid() {
@@ -298,7 +296,7 @@ const CalendarController = {
         <div class="flex items-center justify-between p-space-sm rounded-lg hover:bg-surface-container-low transition-colors group">
           <div class="flex items-center gap-space-sm min-w-0">
             <div class="w-10 h-10 rounded-lg ${isExpense ? 'bg-surface-container-high text-primary' : 'bg-tertiary-fixed text-on-tertiary-fixed'} flex items-center justify-center shrink-0">
-              <span class="material-symbols-outlined text-[20px]">${isExpense ? 'receipt' : 'payments'}</span>
+              <span class="material-symbols-outlined text-[20px]">${(window.App && window.App.getCategoryIcon) ? window.App.getCategoryIcon(t.category, t.type) : (isExpense ? 'receipt' : 'payments')}</span>
             </div>
             <div class="flex flex-col min-w-0">
               <span class="font-title-sm text-title-sm text-on-surface font-bold truncate">${t.merchant}</span>

@@ -504,15 +504,17 @@
               <div class="md:col-span-2 flex items-center bg-surface-container-low rounded-lg px-space-sm py-2">
                 <select id="filter-category-select" class="w-full bg-transparent font-title-sm text-title-sm text-on-surface focus:outline-none cursor-pointer">
                   <option value="">All Categories</option>
-                  <option value="Food & Dining">Food &amp; Dining</option>
+                  <option value="Food & Drinks">Food &amp; Drinks</option>
                   <option value="Bills & Utilities">Bills &amp; Utilities</option>
                   <option value="Shopping">Shopping</option>
                   <option value="Transport">Transport</option>
                   <option value="Entertainment">Entertainment</option>
                   <option value="Health & Fitness">Health &amp; Fitness</option>
+                  <option value="Income">Income</option>
                   <option value="Salary & Income">Salary &amp; Income</option>
                   <option value="Freelance">Freelance</option>
                   <option value="Investment">Investment</option>
+                  <option value="Misc.">Misc.</option>
                   <option value="Others & Misc">Others &amp; Misc</option>
                 </select>
               </div>
@@ -754,7 +756,7 @@
           </div>
 
           <!-- Summary Metric Strip -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-space-md">
             <!-- Total Spent -->
             <div class="bg-surface-container-lowest shadow-sm rounded-xl p-space-lg flex flex-col justify-between">
               <div class="flex items-center justify-between">
@@ -804,24 +806,6 @@
                   <span class="material-symbols-outlined text-[16px]">priority_high</span> Highest Spending
                 </span>
                 <span class="text-on-surface-variant">Peak</span>
-              </div>
-            </div>
-
-            <!-- Zero Spend Days -->
-            <div class="bg-surface-container-lowest shadow-sm rounded-xl p-space-lg flex flex-col justify-between">
-              <div class="flex items-center justify-between">
-                <span class="font-label-md text-label-md uppercase tracking-wider text-on-surface-variant font-semibold">Zero-Spend Days</span>
-                <span class="p-space-xs rounded-lg bg-surface-container-low text-tertiary material-symbols-outlined text-[20px]">sentiment_very_satisfied</span>
-              </div>
-              <div class="mt-space-md flex items-baseline gap-space-xs">
-                <span id="cal-zero-days" class="font-headline-lg text-headline-lg text-tertiary font-bold">0 Days</span>
-                <span class="font-label-md text-label-md text-on-surface-variant">Achieved</span>
-              </div>
-              <div class="mt-space-sm flex items-center justify-between text-body-sm font-body-sm">
-                <span class="text-tertiary font-semibold flex items-center gap-space-2xs">
-                  <span class="material-symbols-outlined text-[16px]">verified</span> Healthy Habits
-                </span>
-                <span class="text-on-surface-variant">Saved</span>
               </div>
             </div>
           </div>
@@ -938,7 +922,7 @@
                     <span class="material-symbols-outlined text-[20px]">restaurant</span>
                   </div>
                   <div>
-                    <span class="font-title-sm text-title-sm font-bold text-on-surface">Food &amp; Dining</span>
+                    <span class="font-title-sm text-title-sm font-bold text-on-surface">Food &amp; Drinks</span>
                     <p class="font-label-sm text-label-sm text-secondary">Expense · #00685f</p>
                   </div>
                 </div>
@@ -1132,18 +1116,18 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-space-base">
           <div>
             <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Category</label>
-            <select id="tx-category" class="w-full px-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
-              <option value="Food & Dining">Food &amp; Dining</option>
-              <option value="Bills & Utilities">Bills &amp; Utilities</option>
-              <option value="Shopping">Shopping</option>
-              <option value="Transport">Transport</option>
-              <option value="Entertainment">Entertainment</option>
-              <option value="Health & Fitness">Health &amp; Fitness</option>
-              <option value="Salary & Income">Salary &amp; Income</option>
-              <option value="Freelance">Freelance</option>
-              <option value="Investment">Investment</option>
-              <option value="Others & Misc">Others &amp; Misc</option>
-            </select>
+            <div class="relative flex items-center">
+              <span id="tx-category-icon" class="material-symbols-outlined absolute left-3 text-[20px] text-primary pointer-events-none transition-all">restaurant</span>
+              <select id="tx-category" class="w-full pl-10 pr-space-md py-2 bg-surface-container-low rounded-lg font-body-md text-body-md text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/50 cursor-pointer">
+                <option value="Food & Drinks">Food &amp; Drinks</option>
+                <option value="Bills & Utilities">Bills &amp; Utilities</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Transport">Transport</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Health & Fitness">Health &amp; Fitness</option>
+                <option value="Others & Misc">Others &amp; Misc</option>
+              </select>
+            </div>
           </div>
           <div>
             <label class="font-label-md text-label-md text-on-surface font-semibold block mb-1">Payment Rail</label>
@@ -1300,9 +1284,9 @@
   <script src="/static/js/api.js"></script>
   <script src="/static/js/charts.js"></script>
   <script src="/static/js/filters.js"></script>
-  <script src="/static/js/calendar.js"></script>
+  <script src="/static/js/calendar.js?v=6"></script>
   <script src="/static/js/auth.js"></script>
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/app.js?v=6"></script>
 
 </body>
 </html>

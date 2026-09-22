@@ -16,7 +16,7 @@
  */
 
 // SpendWise Service Worker
-const CACHE_NAME = 'spendwise-static-v3';
+const CACHE_NAME = 'spendwise-static-v6';
 
 // Safe static assets only - NEVER cache private financial or user data
 const STATIC_ASSETS = [

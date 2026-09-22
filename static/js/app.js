@@ -87,6 +87,27 @@ const App = {
       txForm.addEventListener('submit', (e) => this.handleTransactionSubmit(e));
     }
 
+    // Transaction modal type toggle & dynamic category updates
+    const txTypeSelect = document.getElementById('tx-type');
+    if (txTypeSelect) {
+      txTypeSelect.addEventListener('change', (e) => {
+        this.updateModalCategories(e.target.value);
+      });
+    }
+
+    const txCatSelect = document.getElementById('tx-category');
+    if (txCatSelect) {
+      const updateIcon = () => {
+        const iconEl = document.getElementById('tx-category-icon');
+        const currentType = txTypeSelect ? txTypeSelect.value : 'expense';
+        if (iconEl) {
+          iconEl.textContent = this.getCategoryIcon(txCatSelect.value, currentType);
+        }
+      };
+      txCatSelect.addEventListener('change', updateIcon);
+      txCatSelect.addEventListener('input', updateIcon);
+    }
+
     // Auth forms
     const loginForm = document.getElementById('form-login');
     if (loginForm) {
@@ -428,7 +449,7 @@ const App = {
           <td class="py-3 px-space-md font-semibold text-on-surface">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-lg ${isExpense ? 'bg-primary-fixed text-on-primary-fixed' : 'bg-tertiary-fixed text-on-tertiary-fixed'} flex items-center justify-center">
-                <span class="material-symbols-outlined text-[16px]">${isExpense ? 'restaurant' : 'payments'}</span>
+                <span class="material-symbols-outlined text-[16px]">${this.getCategoryIcon(t.category, t.type)}</span>
               </div>
               <span>${t.merchant}</span>
             </div>
@@ -638,6 +659,101 @@ const App = {
   // -------------------------------------------------------------
   // Modals & Form Submission
   // -------------------------------------------------------------
+  CATEGORY_CONFIG: {
+    expense: [
+      { name: 'Food & Drinks', icon: 'restaurant' },
+      { name: 'Bills & Utilities', icon: 'wifi' },
+      { name: 'Shopping', icon: 'shopping_bag' },
+      { name: 'Transport', icon: 'directions_car' },
+      { name: 'Entertainment', icon: 'movie' },
+      { name: 'Health & Fitness', icon: 'fitness_center' },
+      { name: 'Others & Misc', icon: 'more_horiz' }
+    ],
+    income: [
+      { name: 'Income', icon: 'payments' },
+      { name: 'Misc.', icon: 'more_horiz' }
+    ]
+  },
+
+  getCategoryIcon(category, type = 'expense') {
+    if (!category) return type === 'income' ? 'payments' : 'restaurant';
+    const cat = category.toLowerCase().trim();
+
+    // Food & Dining / Food & Drinks
+    if (cat.includes('food') || cat.includes('dining') || cat.includes('drink') || cat.includes('restaurant') || cat.includes('cafe')) {
+      return 'restaurant';
+    }
+    // Transport
+    if (cat.includes('transport') || cat.includes('travel') || cat.includes('car') || cat.includes('cab') || cat.includes('uber') || cat.includes('commute')) {
+      return 'directions_car';
+    }
+    // Shopping
+    if (cat.includes('shop') || cat.includes('grocer') || cat.includes('store') || cat.includes('mall') || cat.includes('cloth') || cat.includes('buy')) {
+      return 'shopping_bag';
+    }
+    // Bills & Utilities
+    if (cat.includes('bill') || cat.includes('utilit') || cat.includes('electricity') || cat.includes('wifi') || cat.includes('water') || cat.includes('recharge')) {
+      return 'wifi';
+    }
+    // Entertainment
+    if (cat.includes('entertain') || cat.includes('movie') || cat.includes('cinema') || cat.includes('theatre') || cat.includes('game') || cat.includes('music')) {
+      return 'movie';
+    }
+    // Health & Fitness
+    if (cat.includes('health') || cat.includes('fit') || cat.includes('gym') || cat.includes('med') || cat.includes('doctor') || cat.includes('pharmacy')) {
+      return 'fitness_center';
+    }
+    // Income / Salary
+    if (cat.includes('salary') || cat.includes('income') || cat.includes('earning') || cat.includes('wage') || cat.includes('pension')) {
+      return 'payments';
+    }
+    // Freelance
+    if (cat.includes('freelance') || cat.includes('contract') || cat.includes('project') || cat.includes('work')) {
+      return 'work';
+    }
+    // Investment
+    if (cat.includes('invest') || cat.includes('stock') || cat.includes('mutual') || cat.includes('dividend') || cat.includes('crypto')) {
+      return 'trending_up';
+    }
+    // Misc / Others
+    if (cat.includes('misc') || cat.includes('other')) {
+      return 'more_horiz';
+    }
+
+    return type === 'income' ? 'payments' : 'restaurant';
+  },
+
+  updateModalCategories(type = 'expense', selectedCategory = null) {
+    const catSelect = document.getElementById('tx-category');
+    const iconEl = document.getElementById('tx-category-icon');
+    if (!catSelect) return;
+
+    const isIncome = type === 'income';
+    const allowedCategories = isIncome ? this.CATEGORY_CONFIG.income : this.CATEGORY_CONFIG.expense;
+
+    let optionsHtml = allowedCategories.map(cat => `<option value="${cat.name}">${cat.name}</option>`).join('');
+
+    // If an existing transaction has a custom or legacy category, preserve it in the dropdown
+    if (selectedCategory && !allowedCategories.some(c => c.name.toLowerCase() === selectedCategory.toLowerCase())) {
+      optionsHtml = `<option value="${selectedCategory}">${selectedCategory}</option>` + optionsHtml;
+    }
+
+    catSelect.innerHTML = optionsHtml;
+
+    // Pick appropriate value
+    let targetVal = selectedCategory;
+    const exists = Array.from(catSelect.options).some(opt => opt.value === targetVal);
+    if (!exists || !targetVal) {
+      targetVal = isIncome ? 'Income' : 'Food & Drinks';
+    }
+    catSelect.value = targetVal;
+
+    // Update icon immediately
+    if (iconEl) {
+      iconEl.textContent = this.getCategoryIcon(targetVal, type);
+    }
+  },
+
   openAddTransactionModal(defaultDate = null) {
     this.currentEditingId = null;
     const modal = document.getElementById('transaction-modal');
@@ -654,7 +770,7 @@ const App = {
     document.getElementById('tx-merchant').value = '';
     document.getElementById('tx-amount').value = '';
     document.getElementById('tx-type').value = 'expense';
-    document.getElementById('tx-category').value = 'Food & Dining';
+    this.updateModalCategories('expense', 'Food & Drinks');
     document.getElementById('tx-payment-method').value = 'UPI';
     document.getElementById('tx-date').value = todayStr;
     document.getElementById('tx-time').value = timeStr;
@@ -681,7 +797,7 @@ const App = {
     document.getElementById('tx-merchant').value = tx.merchant;
     document.getElementById('tx-amount').value = tx.amount;
     document.getElementById('tx-type').value = tx.type;
-    document.getElementById('tx-category').value = tx.category;
+    this.updateModalCategories(tx.type, tx.category);
     document.getElementById('tx-payment-method').value = tx.payment_method;
     document.getElementById('tx-date').value = tx.date;
     document.getElementById('tx-time').value = tx.time;
@@ -719,7 +835,7 @@ const App = {
       const merchant = merchantEl ? merchantEl.value.trim() : '';
       const amount = amountEl ? parseFloat(amountEl.value) : NaN;
       const type = document.getElementById('tx-type') ? document.getElementById('tx-type').value : 'expense';
-      const category = document.getElementById('tx-category') ? document.getElementById('tx-category').value : 'Food & Dining';
+      const category = document.getElementById('tx-category') ? document.getElementById('tx-category').value : 'Food & Drinks';
       const payment_method = document.getElementById('tx-payment-method') ? document.getElementById('tx-payment-method').value : 'UPI';
       const date = document.getElementById('tx-date') ? document.getElementById('tx-date').value : '';
       const time = document.getElementById('tx-time') ? document.getElementById('tx-time').value : '';
